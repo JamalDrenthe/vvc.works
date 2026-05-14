@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────────
+   THEME — VVC brutalist (zwart + magenta).
+   Gemerged shadcn theme uit beide source apps; één canonieke set
+   CSS variables die door alle UI primitives worden gebruikt.
+   ───────────────────────────────────────────────────────────────── */
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 4%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 327 100% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 2%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 7%;
+    --muted-foreground: 0 0% 53%;
+    --accent: 0 0% 10%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 13%;
+    --input: 0 0% 20%;
+    --ring: 327 100% 45%;
+    --radius: 0rem;
+    --sidebar-background: 0 0% 2%;
+    --sidebar-foreground: 0 0% 53%;
+    --sidebar-primary: 327 100% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 7%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 13%;
+    --sidebar-ring: 327 100% 45%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family:
+      ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: #e6007e;
+    color: #ffffff;
+  }
+}
+
+/* ─── Custom scrollbars ─────────────────────────────────────────── */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #000000;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #333333;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #e6007e;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* ─── Range slider styling (gebruikt door dashboard calculator) ──── */
+
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: #333333;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #ffffff;
+  cursor: pointer;
+  border: 2px solid #000000;
+  border-radius: 0;
+}
+input[type="range"].highlight-slider::-webkit-slider-thumb {
+  background: #e6007e;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border: none;
+  border-radius: 0;
+}
+input[type="range"]:focus::-webkit-slider-thumb {
+  transform: scale(1.25);
+}
+
+/* ─── Focus states (a11y) ───────────────────────────────────────── */
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid #e6007e;
+  outline-offset: 2px;
+}
+
+/* ─── Animation utility classes — backed door Tailwind keyframes ─
+   (zie tailwind.config.js). De CSS-only fallbacks blijven beschikbaar
+   voor componenten die direct met className="animate-fade-in" werken. ── */
+
+@keyframes vvcFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: vvcFadeIn 0.3s ease both;
+}
