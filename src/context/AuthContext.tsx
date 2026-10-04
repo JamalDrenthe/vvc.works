@@ -147,7 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, isLoading: true, error: null }))
     try {
       const session = await authApi.login(credentials)
-      if (generation !== sessionGeneration.current) return
+      if (generation !== sessionGeneration.current) return false
       if (config.authProvider !== "firebase") {
         writeSessionToStorage(session)
       }
@@ -157,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading: false,
         error: null,
       })
+      return true
     } catch (err) {
       if (generation !== sessionGeneration.current) throw err
       const message =
