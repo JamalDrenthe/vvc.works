@@ -58,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   })
 
   const didValidate = useRef(false)
+  const sessionGeneration = useRef(0)
   useEffect(() => {
     if (config.authProvider === "firebase") {
       writeSessionToStorage(null)
@@ -118,9 +119,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (config.authProvider === "mock") return
     const session = readSessionFromStorage()
     if (!session) return
+    const generation = ++sessionGeneration.current
     void authApi
       .me()
       .then((user) => {
+        if (generation !== sessionGeneration.current) return
         if (user) {
           const next: AuthSession = { ...session, user }
           writeSessionToStorage(next)
@@ -128,6 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch(() => {
+        if (generation !== sessionGeneration.current) return
         writeSessionToStorage(null)
         setState({
           user: null,
@@ -139,9 +143,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = useCallback(async (credentials: LoginCredentials) => {
+    const generation = ++sessionGeneration.current
     setState((s) => ({ ...s, isLoading: true, error: null }))
     try {
       const session = await authApi.login(credentials)
+      if (generation !== sessionGeneration.current) return
       if (config.authProvider !== "firebase") {
         writeSessionToStorage(session)
       }
@@ -152,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         error: null,
       })
     } catch (err) {
+      if (generation !== sessionGeneration.current) throw err
       const message =
         err instanceof Error ? err.message : "Inloggen mislukt."
       setState({
@@ -165,7 +172,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = useCallback(async () => {
+    const generation = ++sessionGeneration.current
     await authApi.logout()
+    if (generation !== sessionGeneration.current) return
     if (config.authProvider !== "firebase") {
       writeSessionToStorage(null)
     }
