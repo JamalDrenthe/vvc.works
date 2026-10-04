@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react"
-import { useLocation, useNavigate } from "react-router"
+import { Link, useLocation, useNavigate } from "react-router"
 import { ChevronRight, Loader2, ShieldCheck } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { config } from "@/lib/config"
@@ -85,23 +85,32 @@ export default function LoginPage() {
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={isLoading || !email || !password}
-          className="w-full bg-magenta text-white font-black py-3 px-4 uppercase tracking-widest text-xs flex justify-center items-center gap-2 transition-colors duration-200 hover:bg-white hover:text-black disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-magenta disabled:hover:text-white"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="animate-spin" size={14} />
-              Inloggen…
-            </>
-          ) : (
-            <>
-              Inloggen
-              <ChevronRight size={14} />
-            </>
-          )}
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            type="submit"
+            disabled={isLoading || !email || !password}
+            className="flex-1 bg-magenta text-white font-black py-3 px-4 uppercase tracking-widest text-xs flex justify-center items-center gap-2 transition-colors duration-200 hover:bg-white hover:text-black disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-magenta disabled:hover:text-white"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="animate-spin" size={14} />
+                Inloggen…
+              </>
+            ) : (
+              <>
+                Inloggen
+                <ChevronRight size={14} />
+              </>
+            )}
+          </button>
+          <Link
+            to="/register"
+            className="flex-1 border border-[#333333] text-[#888888] font-black py-3 px-4 uppercase tracking-widest text-xs flex justify-center items-center gap-2 transition-colors duration-200 hover:border-magenta hover:text-white"
+          >
+            Registreren
+            <ChevronRight size={14} />
+          </Link>
+        </div>
 
         {config.useMock && config.authProvider !== "firebase" && (
           <div className="border-t border-[#222222] pt-4 text-[10px] text-[#666666] font-bold uppercase tracking-widest leading-relaxed">
