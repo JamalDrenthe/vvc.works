@@ -19,7 +19,8 @@ export default function LoginPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     try {
-      await login({ email, password })
+      const authenticated = await login({ email, password })
+      if (!authenticated) return
       const target =
         (location.state as LocationState | null)?.from?.pathname ?? "/dashboard"
       navigate(target, { replace: true })
