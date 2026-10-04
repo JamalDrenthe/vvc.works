@@ -112,7 +112,7 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {config.useMock && config.authProvider !== "firebase" && (
+        {config.authProvider === "mock" && (
           <div className="border-t border-[#222222] pt-4 text-[10px] text-[#666666] font-bold uppercase tracking-widest leading-relaxed">
             <div className="flex items-center gap-2 text-magenta mb-2">
               <ShieldCheck size={12} />

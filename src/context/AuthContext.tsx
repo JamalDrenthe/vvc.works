@@ -115,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (didValidate.current) return
     didValidate.current = true
-    if (config.useMock) return
+    if (config.authProvider === "mock") return
     const session = readSessionFromStorage()
     if (!session) return
     void authApi
