@@ -1,5 +1,4 @@
 import { config } from "@/lib/config"
-import { getFirebaseAuth } from "@/lib/firebase.client"
 
 export class ApiError extends Error {
   status: number
@@ -25,7 +24,7 @@ interface RequestOptions extends Omit<RequestInit, "body"> {
 async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const { body, skipAuth, headers, ...rest } = opts
 
-  const accessToken = await readAccessToken()
+  const accessToken = skipAuth ? null : await readAccessToken()
   const finalHeaders: Record<string, string> = {
     "Content-Type": "application/json",
     ...(headers as Record<string, string> | undefined),
@@ -64,6 +63,7 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
 
 async function readAccessToken(): Promise<string | null> {
   if (config.authProvider === "firebase") {
+    const { getFirebaseAuth } = await import("@/lib/firebase.client")
     const user = (await getFirebaseAuth()).currentUser
     return user ? user.getIdToken() : null
   }

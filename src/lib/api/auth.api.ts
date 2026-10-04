@@ -4,8 +4,7 @@ import { api } from "@/lib/api/client"
 import type { AuthSession, LoginCredentials, UserRole } from "@/types"
 
 /**
- * Auth API. Wisselt automatisch tussen mock-implementatie (lokale stub voor
- * demo/development) en een echte backend wanneer VITE_API_BASE_URL is gezet.
+ * Auth API. De authenticatieprovider staat los van de appdata-modus.
  */
 
 const MOCK_USERS: Array<{ password: string; session: AuthSession }> = [
@@ -59,7 +58,7 @@ export const authApi = {
       }
     }
 
-    if (config.useMock) {
+    if (config.authProvider === "mock") {
       const match = MOCK_USERS.find(
         (u) =>
           u.session.user.email.toLowerCase() ===
@@ -79,7 +78,7 @@ export const authApi = {
   },
 
   async me(): Promise<AuthSession["user"] | null> {
-    if (config.useMock || config.authProvider === "firebase") {
+    if (config.authProvider !== "api") {
       return null
     }
     return api.get<AuthSession["user"]>("/auth/me")
@@ -95,7 +94,7 @@ export const authApi = {
       return
     }
 
-    if (config.useMock) return
+    if (config.authProvider === "mock") return
     try {
       await api.post<void>("/auth/logout")
     } catch {
@@ -111,18 +110,52 @@ export const authApi = {
       import("firebase/auth"),
       import("@/lib/firebase.client"),
     ])
-    return onIdTokenChanged(
-      await getFirebaseAuth(),
+    const auth = await getFirebaseAuth()
+    let eventVersion = 0
+    let active = true
+    const unsubscribe = onIdTokenChanged(
+      auth,
       (user) => {
+        const currentVersion = ++eventVersion
         if (!user) {
           onSession(null)
           return
         }
 
-        void toFirebaseSession(user).then(onSession).catch(onError)
+        void toFirebaseSession(user)
+          .then((session) => {
+            if (
+              active &&
+              currentVersion === eventVersion &&
+              auth.currentUser?.uid === user.uid
+            ) {
+              onSession(session)
+            }
+          })
+          .catch((error: unknown) => {
+            if (
+              active &&
+              currentVersion === eventVersion &&
+              auth.currentUser?.uid === user.uid
+            ) {
+              onError(
+                error instanceof Error
+                  ? error
+                  : new Error("Firebase-authenticatie kon niet worden gecontroleerd."),
+              )
+            }
+          })
       },
-      onError,
+      (error) => {
+        eventVersion += 1
+        if (active) onError(error)
+      },
     )
+    return () => {
+      active = false
+      eventVersion += 1
+      unsubscribe()
+    }
   },
 }
 

@@ -147,7 +147,9 @@ Gebruik `VITE_AUTH_PROVIDER=firebase` met de publieke Web App-waarden uit
 Firebase-project `vvc-dev` in `.env.local` of `.env.development.local`. Schakel
 in Firebase Authentication de provider **E-mail/wachtwoord** in voordat
 Firebase-accounts kunnen inloggen. Laat `VITE_USE_MOCK=true` staan om tijdens
-deze eerste auth-stap de bestaande lokale appdata te behouden. Firebase-rollen
+deze eerste auth-stap de bestaande lokale appdata te behouden.
+`VITE_AUTH_PROVIDER` kiest de authenticatie onafhankelijk van
+`VITE_USE_MOCK`, dat alleen de appdata-bron bepaalt. Firebase-rollen
 worden gelezen uit de tokenclaim `role`; accounts zonder geldige claim krijgen
 de laagste bestaande rol (`talent`). Rollen moeten door een vertrouwde
 serveromgeving worden toegekend. Deze auth-koppeling migreert geen bestaande
