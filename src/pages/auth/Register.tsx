@@ -131,6 +131,7 @@ export default function RegisterPage() {
       </div>
 
       <form
+        key={route}
         onSubmit={handleSubmit}
         className="bg-[#0a0a0a] border border-[#222222] p-8 space-y-6"
       >
