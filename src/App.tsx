@@ -4,6 +4,7 @@ import { ProtectedRoute, PublicOnlyRoute } from "@/routes/ProtectedRoute"
 import { AppShell } from "@/components/layout/AppShell"
 import { AuthLayout } from "@/components/layout/AuthLayout"
 import LoginPage from "@/pages/auth/Login"
+import RegisterPage from "@/pages/auth/Register"
 import DashboardPage from "@/pages/dashboard/Dashboard"
 import OnboardingPage from "@/pages/onboarding/Onboarding"
 import CompaniesPage from "@/pages/onboarding/Companies"
@@ -43,6 +44,7 @@ export default function App() {
         <Route element={<PublicOnlyRoute />}>
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
           </Route>
         </Route>
 
