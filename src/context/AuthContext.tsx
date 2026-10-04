@@ -19,6 +19,7 @@ interface AuthState {
 }
 
 const STORAGE_KEY = config.storageKey.session
+const hasFirebaseConfig = Object.values(config.firebase).every(Boolean)
 
 function readSessionFromStorage(): AuthSession | null {
   try {
@@ -43,20 +44,78 @@ function writeSessionToStorage(session: AuthSession | null) {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>(() => {
-    const session = readSessionFromStorage()
+    const session =
+      config.authProvider === "firebase" ? null : readSessionFromStorage()
     return {
       user: session?.user ?? null,
       isAuthenticated: !!session,
-      isLoading: false,
-      error: null,
+      isLoading: config.authProvider === "firebase" && hasFirebaseConfig,
+      error:
+        config.authProvider === "firebase" && !hasFirebaseConfig
+          ? "Firebase-configuratie ontbreekt."
+          : null,
     }
   })
 
-  // Re-validate session against backend on mount (no-op in mock mode).
   const didValidate = useRef(false)
   useEffect(() => {
-    if (didValidate.current || config.useMock) return
+    if (config.authProvider === "firebase") {
+      writeSessionToStorage(null)
+      if (!hasFirebaseConfig) return
+
+      let active = true
+      let unsubscribe: (() => void) | undefined
+      void authApi
+        .observeFirebaseSession(
+          (session) => {
+            if (!active) return
+            setState({
+              user: session?.user ?? null,
+              isAuthenticated: session !== null,
+              isLoading: false,
+              error: null,
+            })
+          },
+          (error) => {
+            if (!active) return
+            setState({
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+              error: error.message,
+            })
+          },
+        )
+        .then((stop) => {
+          if (active) {
+            unsubscribe = stop
+          } else {
+            stop()
+          }
+        })
+        .catch((error: unknown) => {
+          if (active) {
+            setState({
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Firebase-authenticatie kon niet starten.",
+            })
+          }
+        })
+
+      return () => {
+        active = false
+        unsubscribe?.()
+      }
+    }
+
+    if (didValidate.current) return
     didValidate.current = true
+    if (config.useMock) return
     const session = readSessionFromStorage()
     if (!session) return
     void authApi
@@ -83,7 +142,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, isLoading: true, error: null }))
     try {
       const session = await authApi.login(credentials)
-      writeSessionToStorage(session)
+      if (config.authProvider !== "firebase") {
+        writeSessionToStorage(session)
+      }
       setState({
         user: session.user,
         isAuthenticated: true,
@@ -105,7 +166,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     await authApi.logout()
-    writeSessionToStorage(null)
+    if (config.authProvider !== "firebase") {
+      writeSessionToStorage(null)
+    }
     setState({
       user: null,
       isAuthenticated: false,
