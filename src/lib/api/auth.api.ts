@@ -1,6 +1,7 @@
+import type { Unsubscribe, User } from "firebase/auth"
 import { config } from "@/lib/config"
 import { api } from "@/lib/api/client"
-import type { AuthSession, LoginCredentials } from "@/types"
+import type { AuthSession, LoginCredentials, UserRole } from "@/types"
 
 /**
  * Auth API. Wisselt automatisch tussen mock-implementatie (lokale stub voor
@@ -40,6 +41,24 @@ const MOCK_USERS: Array<{ password: string; session: AuthSession }> = [
 
 export const authApi = {
   async login(credentials: LoginCredentials): Promise<AuthSession> {
+    if (config.authProvider === "firebase") {
+      try {
+        const [{ signInWithEmailAndPassword }, { getFirebaseAuth }] =
+          await Promise.all([
+            import("firebase/auth"),
+            import("@/lib/firebase.client"),
+          ])
+        const credential = await signInWithEmailAndPassword(
+          await getFirebaseAuth(),
+          credentials.email.trim(),
+          credentials.password,
+        )
+        return toFirebaseSession(credential.user)
+      } catch (error) {
+        throw mapFirebaseError(error)
+      }
+    }
+
     if (config.useMock) {
       const match = MOCK_USERS.find(
         (u) =>
@@ -60,13 +79,22 @@ export const authApi = {
   },
 
   async me(): Promise<AuthSession["user"] | null> {
-    if (config.useMock) {
+    if (config.useMock || config.authProvider === "firebase") {
       return null
     }
     return api.get<AuthSession["user"]>("/auth/me")
   },
 
   async logout(): Promise<void> {
+    if (config.authProvider === "firebase") {
+      const [{ signOut }, { getFirebaseAuth }] = await Promise.all([
+        import("firebase/auth"),
+        import("@/lib/firebase.client"),
+      ])
+      await signOut(await getFirebaseAuth())
+      return
+    }
+
     if (config.useMock) return
     try {
       await api.post<void>("/auth/logout")
@@ -74,6 +102,91 @@ export const authApi = {
       /* idempotent: server logout is best-effort */
     }
   },
+
+  async observeFirebaseSession(
+    onSession: (session: AuthSession | null) => void,
+    onError: (error: Error) => void,
+  ): Promise<Unsubscribe> {
+    const [{ onIdTokenChanged }, { getFirebaseAuth }] = await Promise.all([
+      import("firebase/auth"),
+      import("@/lib/firebase.client"),
+    ])
+    return onIdTokenChanged(
+      await getFirebaseAuth(),
+      (user) => {
+        if (!user) {
+          onSession(null)
+          return
+        }
+
+        void toFirebaseSession(user).then(onSession).catch(onError)
+      },
+      onError,
+    )
+  },
+}
+
+const USER_ROLES: UserRole[] = ["ceo", "senior_partner", "partner", "talent"]
+
+function isUserRole(value: unknown): value is UserRole {
+  return USER_ROLES.some((role) => role === value)
+}
+
+async function toFirebaseSession(user: User): Promise<AuthSession> {
+  const { getIdTokenResult } = await import("firebase/auth")
+  const tokenResult = await getIdTokenResult(user)
+  const fullName =
+    user.displayName?.trim() ||
+    user.email?.split("@")[0] ||
+    "VVC-gebruiker"
+  const initials = fullName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("")
+
+  return {
+    accessToken: tokenResult.token,
+    user: {
+      id: user.uid,
+      email: user.email ?? "",
+      fullName,
+      initials,
+      role: isUserRole(tokenResult.claims.role)
+        ? tokenResult.claims.role
+        : "talent",
+      status: "Actief",
+    },
+  }
+}
+
+function mapFirebaseError(error: unknown): Error {
+  if (!(error instanceof Error) || !("code" in error)) {
+    return new Error("Inloggen via Firebase is niet gelukt.")
+  }
+
+  const code = error.code
+  if (typeof code !== "string") {
+    return new Error("Inloggen via Firebase is niet gelukt.")
+  }
+
+  switch (code) {
+    case "auth/invalid-credential":
+    case "auth/user-not-found":
+    case "auth/wrong-password":
+      return new Error("E-mailadres of wachtwoord is onjuist.")
+    case "auth/user-disabled":
+      return new Error("Dit account is uitgeschakeld.")
+    case "auth/configuration-not-found":
+    case "auth/operation-not-allowed":
+      return new Error(
+        "Firebase Authentication is nog niet geconfigureerd. Schakel de e-mail/wachtwoordprovider in Firebase in.",
+      )
+    case "auth/network-request-failed":
+      return new Error("Geen verbinding met Firebase. Controleer je netwerk.")
+    default:
+      return new Error("Inloggen via Firebase is niet gelukt.")
+  }
 }
 
 function wait(ms: number) {

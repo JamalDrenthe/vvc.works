@@ -42,7 +42,7 @@ vvc-platform/
 ├── eslint.config.js
 ├── postcss.config.js
 ├── components.json           shadcn-config (config voor toekomstige `npx shadcn add`)
-├── .env.example              VITE_API_BASE_URL + VITE_USE_MOCK
+├── .env.example              API-, mock- en Firebase Auth-configuratie
 └── src/
     ├── main.tsx              entry: <BrowserRouter> → <AuthProvider> → <App />
     ├── App.tsx               route-tree (login + protected app shell)
@@ -58,7 +58,8 @@ vvc-platform/
     │   └── use-mobile.ts            breakpoint helper (uit shadcn)
     │
     ├── lib/
-    │   ├── config.ts                runtime env-flags (apiBaseUrl, useMock, ...)
+    │   ├── config.ts                runtime env-flags (API, auth-provider, Firebase)
+    │   ├── firebase.client.ts      Firebase Web SDK-auth initialisatie
     │   ├── utils.ts                 cn() helper
     │   └── api/
     │       ├── client.ts            fetch-wrapper met Authorization-injectie
@@ -130,20 +131,35 @@ stuurt al-ingelogde users weg van `/login`.
 
 ## Auth flow
 
-1. App start → `AuthProvider` leest `localStorage["vvc.session"]`.
-2. Bij echte backend (`VITE_API_BASE_URL` gezet) wordt sessie gevalideerd via
-   `GET /auth/me`. Faalt dat? Sessie wordt geleegd en `/login` getriggerd.
+1. Met `VITE_AUTH_PROVIDER=firebase` herstelt Firebase Auth de sessie; de app
+   schrijft het ID-token niet naar `localStorage["vvc.session"]`.
+2. Bij mock/API-auth leest `AuthProvider` `localStorage["vvc.session"]`.
+   Een ingestelde backend wordt via `GET /auth/me` gevalideerd.
 3. `<ProtectedRoute />` redirect ongeauthenticeerden naar `/login` en bewaart
    de gewenste pagina als `state.from`.
 4. `LoginPage` roept `login(credentials)` aan; bij succes navigeert het naar
    `state.from?.pathname ?? "/dashboard"`.
 5. Sidebar logout-knop roept `logout()` aan en navigeert naar `/login`.
 
+## Firebase development-auth
+
+Gebruik `VITE_AUTH_PROVIDER=firebase` met de publieke Web App-waarden uit
+Firebase-project `vvc-dev` in `.env.local` of `.env.development.local`. Schakel
+in Firebase Authentication de provider **E-mail/wachtwoord** in voordat
+Firebase-accounts kunnen inloggen. Laat `VITE_USE_MOCK=true` staan om tijdens
+deze eerste auth-stap de bestaande lokale appdata te behouden. Firebase-rollen
+worden gelezen uit de tokenclaim `role`; accounts zonder geldige claim krijgen
+de laagste bestaande rol (`talent`). Rollen moeten door een vertrouwde
+serveromgeving worden toegekend. Deze auth-koppeling migreert geen bestaande
+databasegegevens; dat vereist eerst een uitleesbare bron en een afgesproken
+datamodel en beveiligingsregels.
+
 ## API integraties
 
 `src/lib/api/client.ts` is een lichte fetch-wrapper met:
 
 - automatische `Authorization: Bearer …` injectie
+- Firebase ID-token-injectie wanneer `VITE_AUTH_PROVIDER=firebase`
 - centrale `ApiError` met status + body
 - relatieve URL als er geen base is gezet (handig voor dev-proxy)
 

@@ -1,4 +1,5 @@
 import { config } from "@/lib/config"
+import { getFirebaseAuth } from "@/lib/firebase.client"
 
 export class ApiError extends Error {
   status: number
@@ -24,13 +25,13 @@ interface RequestOptions extends Omit<RequestInit, "body"> {
 async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const { body, skipAuth, headers, ...rest } = opts
 
-  const session = readSession()
+  const accessToken = await readAccessToken()
   const finalHeaders: Record<string, string> = {
     "Content-Type": "application/json",
     ...(headers as Record<string, string> | undefined),
   }
-  if (!skipAuth && session?.accessToken) {
-    finalHeaders.Authorization = `Bearer ${session.accessToken}`
+  if (!skipAuth && accessToken) {
+    finalHeaders.Authorization = `Bearer ${accessToken}`
   }
 
   const url = config.apiBaseUrl
@@ -61,10 +62,17 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   return parsed as T
 }
 
-function readSession(): { accessToken: string } | null {
+async function readAccessToken(): Promise<string | null> {
+  if (config.authProvider === "firebase") {
+    const user = (await getFirebaseAuth()).currentUser
+    return user ? user.getIdToken() : null
+  }
+
   try {
     const raw = localStorage.getItem(config.storageKey.session)
-    return raw ? (JSON.parse(raw) as { accessToken: string }) : null
+    return raw
+      ? ((JSON.parse(raw) as { accessToken: string }).accessToken ?? null)
+      : null
   } catch {
     return null
   }
