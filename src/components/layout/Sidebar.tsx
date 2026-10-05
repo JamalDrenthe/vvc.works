@@ -51,12 +51,6 @@ const NAV_GROUPS: NavGroup[] = [
       },
       {
         kind: "nav",
-        to: "/onboarding",
-        icon: <Target size={18} />,
-        label: "Onboarding",
-      },
-      {
-        kind: "nav",
         to: "/analytics",
         icon: <Activity size={18} />,
         label: "Analytics",
@@ -72,6 +66,12 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Onboarding",
     items: [
+      {
+        kind: "nav",
+        to: "/onboarding",
+        icon: <Target size={18} />,
+        label: "Overzicht",
+      },
       {
         kind: "nav",
         to: "/onboarding/companies",
