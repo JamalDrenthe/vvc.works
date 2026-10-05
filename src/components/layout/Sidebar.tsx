@@ -108,7 +108,7 @@ const NAV_GROUPS: NavGroup[] = [
     emphasis: true,
     items: [
       { kind: "app", to: "/apps/boostplug", label: "Boostplug" },
-      { kind: "app", to: "/apps/woningvrij", label: "WoningVrij" },
+      { kind: "app", to: "/apps/woningvry", label: "WoningVry" },
       { kind: "app", to: "/apps/spontiva", label: "Spontiva" },
       { kind: "app", to: "/apps/investbotiq", label: "Investbotiq" },
       { kind: "app", to: "/apps/djobba", label: "Djobba" },

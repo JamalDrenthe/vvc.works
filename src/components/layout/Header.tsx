@@ -23,8 +23,9 @@ export function Header({ onOpenMobileMenu }: HeaderProps) {
   const isAppPage = location.pathname.startsWith("/apps/")
   const appId = params.appId ?? "App"
   const isBoostplug = ["boostplug", "boastplug"].includes(appId.toLowerCase())
+  const isWoningVry = ["woningvry", "woningvrij"].includes(appId.toLowerCase())
   const title = isAppPage
-    ? (isBoostplug ? "Boostplug" : appId)
+    ? (isBoostplug ? "Boostplug" : isWoningVry ? "WoningVry" : appId)
     : (TITLES[location.pathname] ?? "VVC Platform")
   const isDashboard = location.pathname === "/dashboard"
 

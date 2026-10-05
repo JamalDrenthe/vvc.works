@@ -80,7 +80,7 @@ export type RouteId =
   | "prospects"
   | "talenten"
   | "app-boostplug"
-  | "app-woningvrij"
+  | "app-woningvry"
   | "app-spontiva"
   | "app-investbotiq"
   | "app-djobba"
