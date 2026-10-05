@@ -37,6 +37,7 @@ interface AppEntry {
   kind: "app"
   to: string
   label: string
+  external?: boolean
 }
 
 const NAV_GROUPS: NavGroup[] = [
@@ -107,7 +108,12 @@ const NAV_GROUPS: NavGroup[] = [
     label: "VVC Apps",
     emphasis: true,
     items: [
-      { kind: "app", to: "/apps/boastplug", label: "Boastplug" },
+      {
+        kind: "app",
+        to: "https://boostplug.one",
+        label: "Boostplug",
+        external: true,
+      },
       { kind: "app", to: "/apps/woningvrij", label: "WoningVrij" },
       { kind: "app", to: "/apps/spontiva", label: "Spontiva" },
       { kind: "app", to: "/apps/investbotiq", label: "Investbotiq" },
@@ -194,6 +200,7 @@ export function Sidebar({ isMobileMenuOpen, onCloseMobileMenu }: SidebarProps) {
                     key={item.to}
                     to={item.to}
                     label={item.label}
+                    external={item.external}
                     onNavigate={onCloseMobileMenu}
                     currentPath={location.pathname}
                   />
@@ -294,38 +301,49 @@ function NavItem({
 function AppItem({
   to,
   label,
+  external,
   onNavigate,
   currentPath,
 }: {
   to: string
   label: string
+  external?: boolean
   onNavigate: () => void
   currentPath: string
 }) {
   const isActive = currentPath === to
-  return (
-    <NavLink
-      to={to}
-      onClick={onNavigate}
+  const className = cn(
+    "w-full flex items-center px-4 py-2.5 transition-all text-left group",
+    isActive ? "text-white" : "text-[#666666] hover:text-white",
+  )
+  const content = (
+    <span
       className={cn(
-        "w-full flex items-center px-4 py-2.5 transition-all text-left group",
-        isActive ? "text-white" : "text-[#666666] hover:text-white",
+        "text-xs tracking-wider uppercase flex items-center",
+        isActive ? "font-black" : "font-bold",
       )}
     >
       <span
         className={cn(
-          "text-xs tracking-wider uppercase flex items-center",
-          isActive ? "font-black" : "font-bold",
+          "w-1.5 h-1.5 rounded-full mr-3 transition-colors",
+          isActive ? "bg-magenta" : "bg-[#333333] group-hover:bg-white",
         )}
-      >
-        <span
-          className={cn(
-            "w-1.5 h-1.5 rounded-full mr-3 transition-colors",
-            isActive ? "bg-magenta" : "bg-[#333333] group-hover:bg-white",
-          )}
-        />
-        {label}
-      </span>
+      />
+      {label}
+    </span>
+  )
+
+  if (external) {
+    return (
+      <a href={to} onClick={onNavigate} className={className}>
+        {content}
+      </a>
+    )
+  }
+
+  return (
+    <NavLink to={to} onClick={onNavigate} className={className}>
+      {content}
     </NavLink>
   )
 }
