@@ -3,7 +3,7 @@ import { Layers, Zap } from "lucide-react"
 
 const KNOWN_APPS = new Set([
   "boostplug",
-  "woningvrij",
+  "woningvry",
   "spontiva",
   "investbotiq",
   "djobba",
@@ -16,10 +16,21 @@ export default function AppDetailPage() {
   const { appId } = useParams<{ appId: string }>()
   const safeId = appId?.toLowerCase() ?? ""
   const isBoostplug = ["boostplug", "boastplug"].includes(safeId)
-  const isKnown = KNOWN_APPS.has(safeId) || isBoostplug
+  const isWoningVry = ["woningvry", "woningvrij"].includes(safeId)
+  const isKnown = KNOWN_APPS.has(safeId) || isBoostplug || isWoningVry
   const displayName = isBoostplug
     ? "Boostplug"
-    : (appId ?? "App").replace(/^[a-z]/, (c) => c.toUpperCase())
+    : isWoningVry
+      ? "WoningVry"
+      : (appId ?? "App").replace(/^[a-z]/, (c) => c.toUpperCase())
+  const websiteUrl = isBoostplug
+    ? "https://boostplug.one"
+    : isWoningVry
+      ? "https://woningvry.nl"
+      : null
+  const websiteLabel = isBoostplug
+    ? "Bezoek Boostplug.one"
+    : "Bezoek WoningVry.nl"
 
   return (
     <div className="h-full flex flex-col justify-center max-w-4xl mx-auto animate-fade-in">
@@ -71,12 +82,12 @@ export default function AppDetailPage() {
 
         {isKnown && (
           <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full justify-center">
-            {isBoostplug ? (
+            {websiteUrl ? (
               <a
-                href="https://boostplug.one"
+                href={websiteUrl}
                 className="bg-magenta text-white px-10 py-4 font-black uppercase tracking-widest text-sm hover:bg-white hover:text-black transition-colors duration-200 flex items-center justify-center gap-3"
               >
-                <Zap size={16} /> Bezoek Boostplug.one
+                <Zap size={16} /> {websiteLabel}
               </a>
             ) : (
               <button
