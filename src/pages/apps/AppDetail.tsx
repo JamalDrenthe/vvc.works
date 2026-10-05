@@ -2,7 +2,7 @@ import { useParams } from "react-router"
 import { Layers, Zap } from "lucide-react"
 
 const KNOWN_APPS = new Set([
-  "boastplug",
+  "boostplug",
   "woningvrij",
   "spontiva",
   "investbotiq",
@@ -15,8 +15,11 @@ const KNOWN_APPS = new Set([
 export default function AppDetailPage() {
   const { appId } = useParams<{ appId: string }>()
   const safeId = appId?.toLowerCase() ?? ""
-  const isKnown = KNOWN_APPS.has(safeId)
-  const displayName = (appId ?? "App").replace(/^[a-z]/, (c) => c.toUpperCase())
+  const isBoostplug = ["boostplug", "boastplug"].includes(safeId)
+  const isKnown = KNOWN_APPS.has(safeId) || isBoostplug
+  const displayName = isBoostplug
+    ? "Boostplug"
+    : (appId ?? "App").replace(/^[a-z]/, (c) => c.toUpperCase())
 
   return (
     <div className="h-full flex flex-col justify-center max-w-4xl mx-auto animate-fade-in">
@@ -68,12 +71,21 @@ export default function AppDetailPage() {
 
         {isKnown && (
           <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full justify-center">
-            <button
-              type="button"
-              className="bg-magenta text-white px-10 py-4 font-black uppercase tracking-widest text-sm hover:bg-white hover:text-black transition-colors duration-200 flex items-center justify-center gap-3"
-            >
-              <Zap size={16} /> Initialiseer Tool
-            </button>
+            {isBoostplug ? (
+              <a
+                href="https://boostplug.one"
+                className="bg-magenta text-white px-10 py-4 font-black uppercase tracking-widest text-sm hover:bg-white hover:text-black transition-colors duration-200 flex items-center justify-center gap-3"
+              >
+                <Zap size={16} /> Bezoek Boostplug.one
+              </a>
+            ) : (
+              <button
+                type="button"
+                className="bg-magenta text-white px-10 py-4 font-black uppercase tracking-widest text-sm hover:bg-white hover:text-black transition-colors duration-200 flex items-center justify-center gap-3"
+              >
+                <Zap size={16} /> Initialiseer Tool
+              </button>
+            )}
             <button
               type="button"
               className="bg-transparent text-white border border-[#444444] px-10 py-4 font-black uppercase tracking-widest text-sm hover:border-white transition-colors duration-200"

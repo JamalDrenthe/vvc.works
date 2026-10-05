@@ -79,7 +79,7 @@ export type RouteId =
   | "community"
   | "prospects"
   | "talenten"
-  | "app-boastplug"
+  | "app-boostplug"
   | "app-woningvrij"
   | "app-spontiva"
   | "app-investbotiq"
