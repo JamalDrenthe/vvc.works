@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "vvc-dev",
+    "dev": "vvc-dev",
+    "prod": "vvc-prod"
+  }
+}

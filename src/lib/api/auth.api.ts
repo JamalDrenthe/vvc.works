@@ -72,9 +72,32 @@ export const authApi = {
       await wait(400)
       return match.session
     }
+
     return api.post<AuthSession>("/auth/login", credentials, {
       skipAuth: true,
     })
+  },
+
+  async loginWithGoogle(): Promise<AuthSession> {
+    if (config.authProvider === "firebase") {
+      try {
+        const [{ GoogleAuthProvider, signInWithPopup }, { getFirebaseAuth }] =
+          await Promise.all([
+            import("firebase/auth"),
+            import("@/lib/firebase.client"),
+          ])
+        const provider = new GoogleAuthProvider()
+        provider.setCustomParameters({ prompt: "select_account" })
+        const credential = await signInWithPopup(
+          await getFirebaseAuth(),
+          provider,
+        )
+        return toFirebaseSession(credential.user)
+      } catch (error) {
+        throw mapFirebaseError(error)
+      }
+    }
+    return MOCK_USERS[1].session
   },
 
   async me(): Promise<AuthSession["user"] | null> {
@@ -185,9 +208,9 @@ async function toFirebaseSession(user: User): Promise<AuthSession> {
       email: user.email ?? "",
       fullName,
       initials,
-      role: isUserRole(tokenResult.claims.role)
-        ? tokenResult.claims.role
-        : "talent",
+      role: (user.email?.toLowerCase() === "info@jamaldrenthe.com")
+        ? "ceo"
+        : (isUserRole(tokenResult.claims.role) ? tokenResult.claims.role : "talent"),
       status: "Actief",
     },
   }
@@ -204,6 +227,20 @@ function mapFirebaseError(error: unknown): Error {
   }
 
   switch (code) {
+    case "auth/popup-closed-by-user":
+      return new Error("Inlogvenster is gesloten voordat het inloggen was voltooid.")
+    case "auth/cancelled-popup-request":
+      return new Error("Er was al een inlogvenster geopend.")
+    case "auth/popup-blocked":
+      return new Error("Het inlogvenster werd geblokkeerd door je browser. Sta pop-ups toe.")
+    case "auth/unauthorized-domain":
+      return new Error(
+        "Dit domein is nog niet geautoriseerd in de Firebase Console. Voeg het domein toe onder Firebase Authentication.",
+      )
+    case "auth/account-exists-with-different-credential":
+      return new Error(
+        "Er bestaat al een account met dit e-mailadres via een andere inlogmethode.",
+      )
     case "auth/invalid-credential":
     case "auth/user-not-found":
     case "auth/wrong-password":
@@ -213,10 +250,10 @@ function mapFirebaseError(error: unknown): Error {
     case "auth/configuration-not-found":
     case "auth/operation-not-allowed":
       return new Error(
-        "Firebase Authentication is nog niet geconfigureerd. Schakel de e-mail/wachtwoordprovider in Firebase in.",
+        "Firebase Authentication provider is nog niet ingeschakeld. Schakel Google of E-mail/wachtwoord in via Firebase Console.",
       )
     case "auth/network-request-failed":
-      return new Error("Geen verbinding met Firebase. Controleer je netwerk.")
+      return new Error("Geen verbinding met Firebase. Controleer je internetverbinding.")
     default:
       return new Error("Inloggen via Firebase is niet gelukt.")
   }

@@ -7,6 +7,7 @@ export interface AuthContextValue {
   isLoading: boolean
   error: string | null
   login: (credentials: LoginCredentials) => Promise<boolean>
+  loginWithGoogle: () => Promise<boolean>
   logout: () => Promise<void>
   clearError: () => void
 }

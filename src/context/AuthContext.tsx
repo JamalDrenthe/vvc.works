@@ -172,6 +172,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const loginWithGoogle = useCallback(async () => {
+    const generation = ++sessionGeneration.current
+    setState((s) => ({ ...s, isLoading: true, error: null }))
+    try {
+      const session = await authApi.loginWithGoogle()
+      if (generation !== sessionGeneration.current) return false
+      if (config.authProvider !== "firebase") {
+        writeSessionToStorage(session)
+      }
+      setState({
+        user: session.user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      })
+      return true
+    } catch (err) {
+      if (generation !== sessionGeneration.current) throw err
+      const message =
+        err instanceof Error ? err.message : "Inloggen met Google mislukt."
+      setState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: message,
+      })
+      throw err
+    }
+  }, [])
+
   const logout = useCallback(async () => {
     const generation = ++sessionGeneration.current
     await authApi.logout()
@@ -193,8 +223,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const value = useMemo<AuthContextValue>(
-    () => ({ ...state, login, logout, clearError }),
-    [state, login, logout, clearError],
+    () => ({ ...state, login, loginWithGoogle, logout, clearError }),
+    [state, login, loginWithGoogle, logout, clearError],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
