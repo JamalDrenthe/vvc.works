@@ -232,7 +232,7 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
               required
               value={data.email}
               onChange={(e) => onChange({ email: e.target.value })}
-              placeholder="naam@domein.nl"
+              placeholder="voorbeeld@vvc.works"
               className="w-full bg-[#111111] border border-[#262626] p-3 text-xs text-white focus:outline-none focus:border-magenta"
             />
           </div>

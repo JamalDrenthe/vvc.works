@@ -28,9 +28,9 @@ const MOCK_USERS: Array<{ password: string; session: AuthSession }> = [
       accessToken: "mock-token-ceo",
       user: {
         id: "u_ceo",
-        email: "ceo@vvc.nl",
-        fullName: "CEO Account",
-        initials: "CEO",
+        email: "voorbeeld@vvc.works",
+        fullName: "Voornaam Achternaam",
+        initials: "VA",
         role: "ceo",
         status: "Actief",
       },
@@ -61,8 +61,10 @@ export const authApi = {
     if (config.authProvider === "mock") {
       const match = MOCK_USERS.find(
         (u) =>
-          u.session.user.email.toLowerCase() ===
-            credentials.email.trim().toLowerCase() &&
+          (u.session.user.email.toLowerCase() ===
+            credentials.email.trim().toLowerCase() ||
+            (credentials.email.trim().toLowerCase() === "ceo@vvc.nl" &&
+              u.session.user.id === "u_ceo")) &&
           u.password === credentials.password,
       )
       if (!match) {

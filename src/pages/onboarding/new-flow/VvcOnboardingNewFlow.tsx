@@ -30,9 +30,9 @@ const INITIAL_REGISTRATION: RegistrationData = {
   crmosCode: "",
   isCrmosFetched: false,
   gender: "",
-  firstName: "",
-  lastName: "",
-  email: "",
+  firstName: "Voornaam",
+  lastName: "Achternaam",
+  email: "voorbeeld@vvc.works",
   phone: "",
   city: "",
   street: "",
@@ -98,13 +98,35 @@ export function VvcOnboardingNewFlow() {
   const [activeStep, setActiveStep] = useState(1)
   const [emailModalData, setEmailModalData] = useState<EmailConfirmationData | null>(null)
 
+  // Helper to normalize demo/default names & emails
+  const normalizeRegistrationData = (u: typeof user) => {
+    let email = u?.email || ""
+    let firstName = u?.fullName ? u.fullName.split(" ")[0] : ""
+    let lastName = u?.fullName ? u.fullName.split(" ").slice(1).join(" ") : ""
+
+    if (!email || email.toLowerCase() === "ceo@vvc.nl") {
+      email = "voorbeeld@vvc.works"
+    }
+    if (!firstName || firstName === "CEO") {
+      firstName = "Voornaam"
+    }
+    if (!lastName || lastName === "Account") {
+      lastName = "Achternaam"
+    }
+
+    return { email, firstName, lastName }
+  }
+
   // Form State
-  const [registration, setRegistration] = useState<RegistrationData>(() => ({
-    ...INITIAL_REGISTRATION,
-    email: user?.email || "",
-    firstName: user?.fullName ? user.fullName.split(" ")[0] : "",
-    lastName: user?.fullName ? user.fullName.split(" ").slice(1).join(" ") : "",
-  }))
+  const [registration, setRegistration] = useState<RegistrationData>(() => {
+    const { email, firstName, lastName } = normalizeRegistrationData(user)
+    return {
+      ...INITIAL_REGISTRATION,
+      email,
+      firstName,
+      lastName,
+    }
+  })
 
   const [step2, setStep2] = useState<Step2Data>(INITIAL_STEP2)
   const [step3, setStep3] = useState<Step3Data>(INITIAL_STEP3)
@@ -112,7 +134,7 @@ export function VvcOnboardingNewFlow() {
   const [internalConnections, setInternalConnections] = useState<Record<string, boolean>>({})
   const [qualityConnections, setQualityConnections] = useState<Record<string, boolean>>({})
 
-  const userEmail = registration.email || user?.email || "partner@vvc.works"
+  const userEmail = registration.email || user?.email || "voorbeeld@vvc.works"
 
   const handleUpdateRegistration = (updated: Partial<RegistrationData>) => {
     setRegistration((prev) => ({ ...prev, ...updated }))

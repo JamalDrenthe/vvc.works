@@ -48,7 +48,7 @@ export function EmailConfirmationModal({
         {/* Email Body Simulation */}
         <div className="bg-[#111111] border border-[#222222] p-4 text-xs space-y-3 mb-6">
           <div className="flex justify-between items-center text-[#777777] border-b border-[#1c1c1c] pb-2">
-            <span><strong>Aan:</strong> {data.recipientEmail || "jouw-account@vvc.nl"}</span>
+            <span><strong>Aan:</strong> {data.recipientEmail || "voorbeeld@vvc.works"}</span>
             <span className="text-[10px]">{data.timestamp}</span>
           </div>
           <div className="text-[#888888]">

@@ -24,7 +24,18 @@ const hasFirebaseConfig = Object.values(config.firebase).every(Boolean)
 function readSessionFromStorage(): AuthSession | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as AuthSession) : null
+    if (!raw) return null
+    const session = JSON.parse(raw) as AuthSession
+    if (session?.user) {
+      if (session.user.email === "ceo@vvc.nl") {
+        session.user.email = "voorbeeld@vvc.works"
+      }
+      if (session.user.fullName === "CEO Account") {
+        session.user.fullName = "Voornaam Achternaam"
+        session.user.initials = "VA"
+      }
+    }
+    return session
   } catch {
     return null
   }

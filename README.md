@@ -28,7 +28,7 @@ Zonder backend draait de app in mock-modus (zie `.env.example`).
 Beschikbare accounts:
 
 - **`sanne@vvc.nl`** / `executie` — Senior Partner
-- **`ceo@vvc.nl`** / `ceo` — CEO
+- **`voorbeeld@vvc.works`** / `ceo` — CEO (of `ceo@vvc.nl`)
 
 ## Architectuur
 
