@@ -5,7 +5,7 @@
 
 /* ─── Auth ─────────────────────────────────────────────────────── */
 
-export type UserRole = "ceo" | "senior_partner" | "partner" | "talent"
+export type UserRole = "ceo" | "senior_partner" | "partner" | "talent" | "vriend"
 
 export interface AuthUser {
   id: string

@@ -51,7 +51,7 @@ const MOCK_USERS: Array<{ password: string; session: AuthSession }> = [
     },
   },
   {
-    password: "ceo",
+    password: "vriend",
     session: {
       accessToken: "mock-token-jsdrenthe",
       user: {
@@ -59,7 +59,7 @@ const MOCK_USERS: Array<{ password: string; session: AuthSession }> = [
         email: "js.drenthe@gmail.com",
         fullName: "Jamal Drenthe",
         initials: "JD",
-        role: "ceo",
+        role: "vriend",
         status: "Actief",
       },
     },
@@ -95,9 +95,10 @@ export const authApi = {
           (emailInput === "ceo@vvc.nl" && u.session.user.id === "u_ceo")
         const isPasswordMatch =
           u.password === credentials.password ||
-          ((u.session.user.email === "info@jamaldrenthe.com" ||
-            u.session.user.email === "js.drenthe@gmail.com") &&
-            (credentials.password === "admin" || credentials.password === "ceo"))
+          (u.session.user.email === "info@jamaldrenthe.com" &&
+            (credentials.password === "admin" || credentials.password === "ceo")) ||
+          (u.session.user.email === "js.drenthe@gmail.com" &&
+            (credentials.password === "vriend" || credentials.password === "password" || credentials.password === "vvc"))
         return isEmailMatch && isPasswordMatch
       })
       if (!match) {
@@ -222,7 +223,7 @@ export const authApi = {
   },
 }
 
-const USER_ROLES: UserRole[] = ["ceo", "senior_partner", "partner", "talent"]
+const USER_ROLES: UserRole[] = ["ceo", "senior_partner", "partner", "talent", "vriend"]
 
 function isUserRole(value: unknown): value is UserRole {
   return USER_ROLES.some((role) => role === value)
@@ -241,6 +242,19 @@ async function toFirebaseSession(user: User): Promise<AuthSession> {
     .map((part) => part.charAt(0).toUpperCase())
     .join("")
 
+  const email = user.email?.toLowerCase() ?? ""
+  let role: UserRole = "vriend"
+
+  if (email === "info@jamaldrenthe.com") {
+    role = "ceo"
+  } else if (email === "js.drenthe@gmail.com") {
+    role = "vriend"
+  } else if (isUserRole(tokenResult.claims.role)) {
+    role = tokenResult.claims.role
+  } else {
+    role = "vriend"
+  }
+
   return {
     accessToken: tokenResult.token,
     user: {
@@ -248,9 +262,7 @@ async function toFirebaseSession(user: User): Promise<AuthSession> {
       email: user.email ?? "",
       fullName,
       initials,
-      role: (user.email?.toLowerCase() === "info@jamaldrenthe.com" || user.email?.toLowerCase() === "js.drenthe@gmail.com")
-        ? "ceo"
-        : (isUserRole(tokenResult.claims.role) ? tokenResult.claims.role : "talent"),
+      role,
       status: "Actief",
     },
   }
