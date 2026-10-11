@@ -55,6 +55,8 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
       hasLtd: true,
       avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
       idDocumentName: "Paspoort_NL_Geverifieerd.pdf",
+      idFrontDocumentName: "ID_NL_Voorkant_Geverifieerd.pdf",
+      idBackDocumentName: "ID_NL_Achterkant_Geverifieerd.pdf",
       cvFileName: "Curriculum_Vitae_Jamal_Drenthe.pdf",
     })
     toast.success("Profielgegevens succesvol opgehaald uit CRMos!", {
@@ -90,6 +92,10 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
     }
     if (!data.referralCode) {
       toast.error("Vul een geldige referralcode in (bijv. VVC-PARTNER-VIP).")
+      return
+    }
+    if (!data.idFrontDocumentName && !data.idDocumentName) {
+      toast.error("Upload de voorkant van je ID of paspoort.")
       return
     }
 
@@ -443,10 +449,10 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
           </div>
 
           {/* Profielfoto Upload */}
-          <div className="border border-[#262626] bg-[#111111] p-4">
+          <div className="border border-[#262626] bg-[#111111] p-4 md:col-span-2">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-bold uppercase text-white">
-                * Profielfoto (Upload)
+              <span className="text-xs font-bold uppercase text-white flex items-center gap-1.5">
+                <User size={14} className="text-magenta" /> * Profielfoto (Upload)
               </span>
               {data.avatarUrl && (
                 <span className="text-[10px] text-emerald-400 font-mono">Foto Geladen ✔</span>
@@ -460,7 +466,7 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
                   <User size={20} className="text-[#555555]" />
                 )}
               </div>
-              <label className="flex-1 border border-dashed border-[#333333] hover:border-magenta p-3 text-center cursor-pointer transition-colors block">
+              <label className="flex-1 border border-dashed border-[#333333] hover:border-magenta p-3 text-center cursor-pointer transition-colors block bg-[#0d0d0d]">
                 <input
                   type="file"
                   accept="image/*"
@@ -479,32 +485,81 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
             </div>
           </div>
 
-          {/* ID/Paspoort Upload */}
-          <div className="border border-[#262626] bg-[#111111] p-4">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-bold uppercase text-white flex items-center gap-1">
+          {/* ID/Paspoort Upload (Voorkant & Achterkant) */}
+          <div className="border border-[#262626] bg-[#111111] p-4 md:col-span-2">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3">
+              <span className="text-xs font-bold uppercase text-white flex items-center gap-1.5">
                 <Shield size={14} className="text-magenta" /> * ID / Paspoort (Upload)
               </span>
-              {data.idDocumentName && (
-                <span className="text-[10px] text-emerald-400 font-mono">Geverifieerd ✔</span>
-              )}
+              <div className="flex items-center gap-2">
+                {data.idFrontDocumentName && (
+                  <span className="text-[10px] text-emerald-400 font-mono">Voorkant ✔</span>
+                )}
+                {data.idBackDocumentName && (
+                  <span className="text-[10px] text-emerald-400 font-mono">Achterkant ✔</span>
+                )}
+                {(!data.idFrontDocumentName && !data.idBackDocumentName && data.idDocumentName) && (
+                  <span className="text-[10px] text-emerald-400 font-mono">Geverifieerd ✔</span>
+                )}
+              </div>
             </div>
-            <label className="border border-dashed border-[#333333] hover:border-magenta p-4 block text-center cursor-pointer transition-colors">
-              <input
-                type="file"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) {
-                    onChange({ idDocumentName: file.name })
-                    toast.success(`ID Document geüpload: ${file.name}`)
-                  }
-                }}
-              />
-              <span className="text-xs text-[#888888]">
-                {data.idDocumentName ? data.idDocumentName : "Upload ID of Paspoort (PDF/JPG)"}
-              </span>
-            </label>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Voorkant */}
+              <div className="space-y-1.5">
+                <div className="text-[10px] font-bold uppercase text-[#aaaaaa] flex items-center justify-between">
+                  <span>* Voorkant</span>
+                  {data.idFrontDocumentName && (
+                    <span className="text-[9px] text-emerald-400 font-mono">Geladen</span>
+                  )}
+                </div>
+                <label className="border border-dashed border-[#333333] hover:border-magenta p-4 block text-center cursor-pointer transition-colors bg-[#0d0d0d]">
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        onChange({
+                          idFrontDocumentName: file.name,
+                          idDocumentName: file.name,
+                        })
+                        toast.success(`ID Voorkant geüpload: ${file.name}`)
+                      }
+                    }}
+                  />
+                  <span className="text-xs text-[#888888] break-all block">
+                    {data.idFrontDocumentName || (data.idDocumentName ? `${data.idDocumentName} (Voorkant)` : "Upload Voorkant (PDF/JPG)")}
+                  </span>
+                </label>
+              </div>
+
+              {/* Achterkant */}
+              <div className="space-y-1.5">
+                <div className="text-[10px] font-bold uppercase text-[#aaaaaa] flex items-center justify-between">
+                  <span>* Achterkant</span>
+                  {data.idBackDocumentName && (
+                    <span className="text-[9px] text-emerald-400 font-mono">Geladen</span>
+                  )}
+                </div>
+                <label className="border border-dashed border-[#333333] hover:border-magenta p-4 block text-center cursor-pointer transition-colors bg-[#0d0d0d]">
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        onChange({ idBackDocumentName: file.name })
+                        toast.success(`ID Achterkant geüpload: ${file.name}`)
+                      }
+                    }}
+                  />
+                  <span className="text-xs text-[#888888] break-all block">
+                    {data.idBackDocumentName || "Upload Achterkant (PDF/JPG)"}
+                  </span>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 

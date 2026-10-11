@@ -42,6 +42,8 @@ const INITIAL_REGISTRATION: RegistrationData = {
   motivationLetter: "",
   avatarUrl: "",
   idDocumentName: "",
+  idFrontDocumentName: "",
+  idBackDocumentName: "",
   referralCode: "VVC-PARTNER-VIP",
   hasKvk: false,
   kvkNumber: "",

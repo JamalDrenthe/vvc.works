@@ -16,6 +16,8 @@ export interface RegistrationData {
   motivationLetter: string
   avatarUrl: string
   idDocumentName: string
+  idFrontDocumentName: string
+  idBackDocumentName: string
   referralCode: string
   hasKvk: boolean
   kvkNumber: string
