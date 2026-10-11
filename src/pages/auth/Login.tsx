@@ -164,10 +164,9 @@ export default function LoginPage() {
               Demo-modus actief
             </div>
             <p className="normal-case tracking-normal font-medium text-[#888888]">
-              Login met <code className="text-white">info@jamaldrenthe.com</code> (CEO/Admin) /{" "}
-              <code className="text-white">ceo</code> of{" "}
-              <code className="text-white">sanne@vvc.nl</code> /{" "}
-              <code className="text-white">executie</code>.
+              Login met <code className="text-white">js.drenthe@gmail.com</code> of{" "}
+              <code className="text-white">info@jamaldrenthe.com</code> (CEO/Admin) via Google of wachtwoord{" "}
+              <code className="text-white">ceo</code>.
             </p>
           </div>
         )}

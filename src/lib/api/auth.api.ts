@@ -50,6 +50,20 @@ const MOCK_USERS: Array<{ password: string; session: AuthSession }> = [
       },
     },
   },
+  {
+    password: "ceo",
+    session: {
+      accessToken: "mock-token-jsdrenthe",
+      user: {
+        id: "u_jsdrenthe",
+        email: "js.drenthe@gmail.com",
+        fullName: "Jamal Drenthe",
+        initials: "JD",
+        role: "ceo",
+        status: "Actief",
+      },
+    },
+  },
 ]
 
 export const authApi = {
@@ -81,7 +95,8 @@ export const authApi = {
           (emailInput === "ceo@vvc.nl" && u.session.user.id === "u_ceo")
         const isPasswordMatch =
           u.password === credentials.password ||
-          (u.session.user.email === "info@jamaldrenthe.com" &&
+          ((u.session.user.email === "info@jamaldrenthe.com" ||
+            u.session.user.email === "js.drenthe@gmail.com") &&
             (credentials.password === "admin" || credentials.password === "ceo"))
         return isEmailMatch && isPasswordMatch
       })
@@ -117,7 +132,11 @@ export const authApi = {
         throw mapFirebaseError(error)
       }
     }
-    const jamal = MOCK_USERS.find((u) => u.session.user.email === "info@jamaldrenthe.com")
+    const jamal = MOCK_USERS.find(
+      (u) =>
+        u.session.user.email === "js.drenthe@gmail.com" ||
+        u.session.user.email === "info@jamaldrenthe.com",
+    )
     return jamal ? jamal.session : MOCK_USERS[1].session
   },
 
@@ -229,7 +248,7 @@ async function toFirebaseSession(user: User): Promise<AuthSession> {
       email: user.email ?? "",
       fullName,
       initials,
-      role: (user.email?.toLowerCase() === "info@jamaldrenthe.com")
+      role: (user.email?.toLowerCase() === "info@jamaldrenthe.com" || user.email?.toLowerCase() === "js.drenthe@gmail.com")
         ? "ceo"
         : (isUserRole(tokenResult.claims.role) ? tokenResult.claims.role : "talent"),
       status: "Actief",
