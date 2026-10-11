@@ -7,6 +7,7 @@ import LoginPage from "@/pages/auth/Login"
 import RegisterPage from "@/pages/auth/Register"
 import DashboardPage from "@/pages/dashboard/Dashboard"
 import OnboardingPage from "@/pages/onboarding/Onboarding"
+import OldFlowOnboardingPage from "@/pages/onboarding/OldFlowOnboarding"
 import CompaniesPage from "@/pages/onboarding/Companies"
 import AcademyPage from "@/pages/onboarding/Academy"
 import AnalyticsPage from "@/pages/analytics/Analytics"
@@ -54,6 +55,7 @@ export default function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
 
             <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route path="/onboarding/old-flow" element={<OldFlowOnboardingPage />} />
             <Route path="/onboarding/companies" element={<CompaniesPage />} />
             <Route path="/onboarding/academy" element={<AcademyPage />} />
 

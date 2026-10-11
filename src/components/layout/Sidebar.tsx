@@ -11,6 +11,7 @@ import {
   LogOut,
   Briefcase,
   GraduationCap,
+  RotateCcw,
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { cn } from "@/lib/utils"
@@ -70,7 +71,13 @@ const NAV_GROUPS: NavGroup[] = [
         kind: "nav",
         to: "/onboarding",
         icon: <Target size={18} />,
-        label: "Overzicht",
+        label: "New Flow",
+      },
+      {
+        kind: "nav",
+        to: "/onboarding/old-flow",
+        icon: <RotateCcw size={18} />,
+        label: "Old Flow",
       },
       {
         kind: "nav",

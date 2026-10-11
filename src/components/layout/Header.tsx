@@ -7,7 +7,8 @@ interface HeaderProps {
 
 const TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
-  "/onboarding": "Onboarding",
+  "/onboarding": "VVC Onboarding New Flow",
+  "/onboarding/old-flow": "VVC Onboarding Old Flow",
   "/onboarding/companies": "126 Bedrijven",
   "/onboarding/academy": "Academy",
   "/analytics": "Analytics",
