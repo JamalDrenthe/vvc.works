@@ -121,12 +121,12 @@ export function LoadingBarConnector({
         </div>
 
         {/* Action Button */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
           {progress === 100 ? (
             <button
               type="button"
               onClick={() => latestEmailData && onOpenEmailModal(latestEmailData)}
-              className="border border-[#333333] hover:border-white text-[#cccccc] hover:text-white font-bold py-2 px-3 text-[11px] uppercase tracking-wider transition-colors flex items-center gap-1.5"
+              className="w-full sm:w-auto border border-[#333333] hover:border-white text-[#cccccc] hover:text-white font-bold py-2 px-3 text-[11px] uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
             >
               <Mail size={12} className="text-magenta" /> Bekijk E-mail (100%)
             </button>
@@ -135,7 +135,7 @@ export function LoadingBarConnector({
               type="button"
               onClick={startConnection}
               disabled={isRunning}
-              className="bg-magenta hover:bg-white hover:text-black text-white font-black py-2 px-4 text-xs uppercase tracking-widest transition-colors flex items-center gap-2 disabled:opacity-50"
+              className="w-full sm:w-auto bg-magenta hover:bg-white hover:text-black text-white font-black py-2 px-4 text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isRunning ? (
                 <>

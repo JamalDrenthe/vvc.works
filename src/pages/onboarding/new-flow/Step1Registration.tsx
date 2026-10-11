@@ -114,10 +114,10 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
         </div>
 
         {/* CRMos Toggle */}
-        <div className="bg-[#111111] border border-[#2a2a2a] p-3 flex flex-col sm:flex-row items-center gap-3">
-          <div className="text-left">
+        <div className="w-full sm:w-auto bg-[#111111] border border-[#2a2a2a] p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0">
+          <div className="text-left min-w-0">
             <div className="text-[10px] font-black uppercase text-white tracking-wider flex items-center gap-1.5">
-              <Database size={13} className="text-magenta" /> Haal op uit CRMos
+              <Database size={13} className="text-magenta shrink-0" /> Haal op uit CRMos
             </div>
             <div className="text-[10px] text-[#777777]">
               {data.isCrmosFetched ? "CRMos Data Gekoppeld ✔" : "Heb je een CRMos code?"}
@@ -126,7 +126,7 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
           <button
             type="button"
             onClick={() => setShowCrmosInput(!showCrmosInput)}
-            className="border border-[#444444] hover:border-magenta text-white font-bold text-[10px] uppercase tracking-wider px-3 py-1.5 transition-colors"
+            className="w-full sm:w-auto border border-[#444444] hover:border-magenta text-white font-bold text-[10px] uppercase tracking-wider px-3 py-1.5 transition-colors shrink-0 text-center whitespace-nowrap"
           >
             {showCrmosInput ? "Sluit Code Veld" : "Enter Code"}
           </button>
@@ -137,23 +137,29 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
       {showCrmosInput && (
         <form
           onSubmit={handleFetchFromCrmos}
-          className="bg-[#120a11] border border-magenta/40 p-4 flex flex-col sm:flex-row gap-3 items-center justify-between animate-fade-in"
+          className="bg-[#120a11] border border-magenta/40 p-4 flex flex-col lg:flex-row gap-3 lg:items-center justify-between animate-fade-in overflow-hidden"
         >
-          <div className="text-xs text-white font-bold flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-magenta animate-pulse" />
-            CRMos Sync: Voer je code in (bijv. <code className="text-magenta font-mono">CRMOS-VVC-2026</code>)
+          <div className="text-xs text-white font-bold flex items-center gap-2 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-magenta animate-pulse shrink-0" />
+            <div className="leading-snug break-words">
+              CRMos Sync: Voer je code in (bijv.{" "}
+              <code className="text-magenta font-mono bg-black/40 px-1 py-0.5 border border-magenta/30 inline-block">
+                CRMOS-VVC-2026
+              </code>
+              )
+            </div>
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto shrink-0">
             <input
               type="text"
               value={crmosInputCode}
               onChange={(e) => setCrmosInputCode(e.target.value)}
               placeholder="CRMOS-XXXX-XXXX"
-              className="bg-[#1c1c1c] border border-[#333333] text-xs text-white px-3 py-2 font-mono uppercase focus:outline-none focus:border-magenta"
+              className="w-full sm:w-48 min-w-0 bg-[#1c1c1c] border border-[#333333] text-xs text-white px-3 py-2 font-mono uppercase focus:outline-none focus:border-magenta"
             />
             <button
               type="submit"
-              className="bg-magenta hover:bg-white hover:text-black text-white text-xs font-black uppercase tracking-wider px-4 py-2 transition-colors"
+              className="w-full sm:w-auto bg-magenta hover:bg-white hover:text-black text-white text-xs font-black uppercase tracking-wider px-4 py-2 transition-colors shrink-0 text-center whitespace-nowrap"
             >
               Synchroniseren
             </button>
