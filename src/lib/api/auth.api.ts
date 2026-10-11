@@ -36,6 +36,20 @@ const MOCK_USERS: Array<{ password: string; session: AuthSession }> = [
       },
     },
   },
+  {
+    password: "ceo",
+    session: {
+      accessToken: "mock-token-jamal",
+      user: {
+        id: "u_jamal",
+        email: "info@jamaldrenthe.com",
+        fullName: "Jamal Drenthe",
+        initials: "JD",
+        role: "ceo",
+        status: "Actief",
+      },
+    },
+  },
 ]
 
 export const authApi = {
@@ -59,14 +73,18 @@ export const authApi = {
     }
 
     if (config.authProvider === "mock") {
-      const match = MOCK_USERS.find(
-        (u) =>
-          (u.session.user.email.toLowerCase() ===
-            credentials.email.trim().toLowerCase() ||
-            (credentials.email.trim().toLowerCase() === "ceo@vvc.nl" &&
-              u.session.user.id === "u_ceo")) &&
-          u.password === credentials.password,
-      )
+      const emailInput = credentials.email.trim().toLowerCase()
+      const match = MOCK_USERS.find((u) => {
+        const uEmail = u.session.user.email.toLowerCase()
+        const isEmailMatch =
+          uEmail === emailInput ||
+          (emailInput === "ceo@vvc.nl" && u.session.user.id === "u_ceo")
+        const isPasswordMatch =
+          u.password === credentials.password ||
+          (u.session.user.email === "info@jamaldrenthe.com" &&
+            (credentials.password === "admin" || credentials.password === "ceo"))
+        return isEmailMatch && isPasswordMatch
+      })
       if (!match) {
         await wait(400)
         throw new Error("Onjuiste inloggegevens.")
@@ -99,7 +117,8 @@ export const authApi = {
         throw mapFirebaseError(error)
       }
     }
-    return MOCK_USERS[1].session
+    const jamal = MOCK_USERS.find((u) => u.session.user.email === "info@jamaldrenthe.com")
+    return jamal ? jamal.session : MOCK_USERS[1].session
   },
 
   async me(): Promise<AuthSession["user"] | null> {
