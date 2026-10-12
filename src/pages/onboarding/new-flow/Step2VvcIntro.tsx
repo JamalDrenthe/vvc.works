@@ -5,6 +5,9 @@ import {
   ChevronRight,
   ChevronLeft,
   Volume2,
+  FileSignature,
+  CreditCard,
+  BadgeCheck,
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -68,8 +71,20 @@ export function Step2VvcIntro({ data, onChange, onNext, onPrev }: Step2Props) {
       toast.error("Selecteer je gewenste samenwerkingsvorm (in dienst, zzp, partnership of franchise).")
       return
     }
+    if (!data.contractSigned || !data.signatureName) {
+      toast.error("Onderteken de overeenkomst digitaal om de juridische status te formaliseren.")
+      return
+    }
+    if (!data.iban || !data.accountHolderName) {
+      toast.error("Vul je betaalrekening (IBAN en tenaamstelling) in voor correcte uitbetaling.")
+      return
+    }
+    if (!data.incomeTermsAccepted) {
+      toast.error("Ga akkoord met de voorwaarden waaronder je inkomsten ontvangt.")
+      return
+    }
 
-    toast.success("Kaart 2 voltooid!")
+    toast.success("Kaart 2 voltooid: Overeenkomst ondertekend en financiën gekoppeld!")
     onNext()
   }
 
@@ -81,10 +96,10 @@ export function Step2VvcIntro({ data, onChange, onNext, onPrev }: Step2Props) {
           Stap 2 — Kaart 2
         </div>
         <h2 className="text-2xl lg:text-3xl font-black text-white uppercase tracking-tight">
-          Wat Is VVC & Bepaal Jouw Traject
+          VVC Introductie, Overeenkomsten & Financiën
         </h2>
         <p className="text-xs text-[#888888] font-medium mt-1">
-          Bekijk de introductievideo, scoor 100% op het club-credo en definieer je beschikbaarheid en verdienmodel.
+          Kennisverificatie, contractuele routes (loondienst/zzp/partner/franchise), digitale ondertekening en uitbetalingsgegevens.
         </p>
       </div>
 
@@ -103,7 +118,6 @@ export function Step2VvcIntro({ data, onChange, onNext, onPrev }: Step2Props) {
           </div>
 
           <div className="relative aspect-video w-full bg-[#111111] border border-[#292929] overflow-hidden flex items-center justify-center group">
-            {/* Ambient shimmer */}
             <div className="absolute inset-0 bg-gradient-to-tr from-black via-[#160d15] to-black opacity-80" />
 
             {isPlaying ? (
@@ -334,14 +348,14 @@ export function Step2VvcIntro({ data, onChange, onNext, onPrev }: Step2Props) {
           {/* Trajectduur */}
           <div>
             <label className="block text-[11px] font-bold uppercase tracking-wider text-white mb-2">
-              Voor welk traject ga je?
+              * Voor welk traject ga je? (Duur van de verbintenis)
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {(["1 jaar", "2 jaar", "3 jaar", "onbepaalde tijd"] as const).map((duration) => (
                 <button
                   key={duration}
                   type="button"
-                  onClick={() => onChange({ trajectoryDuration: duration })}
+                  onClick={() => onChange({ trajectoryDuration: duration, contractAgreedDuration: duration })}
                   className={cn(
                     "p-3 text-xs font-bold uppercase tracking-wider border transition-colors text-center",
                     data.trajectoryDuration === duration
@@ -369,7 +383,7 @@ export function Step2VvcIntro({ data, onChange, onNext, onPrev }: Step2Props) {
                   className={cn(
                     "p-3 text-xs font-bold uppercase tracking-wider border transition-colors text-center",
                     data.contractType === type
-                      ? "border-magenta bg-magenta text-white"
+                      ? "border-magenta bg-magenta text-white ring-1 ring-magenta"
                       : "border-[#262626] bg-[#111111] text-[#888888] hover:text-white hover:border-[#444444]",
                   )}
                 >
@@ -377,6 +391,239 @@ export function Step2VvcIntro({ data, onChange, onNext, onPrev }: Step2Props) {
                 </button>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* ─── AFZONDERLIJKE CONTRACTUELE ROUTES & ONDERTEKENING ─── */}
+        {data.contractType && (
+          <div className="space-y-4 pt-4 border-t border-[#1f1f1f] animate-fade-in">
+            <div className="text-xs font-black uppercase text-white tracking-wider flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <FileSignature size={14} className="text-magenta" /> Overeenkomst & Juridische Status (Route: {data.contractType.toUpperCase()})
+              </span>
+              <span className="text-[10px] text-magenta font-mono uppercase">
+                Looptijd: {data.trajectoryDuration || "Nader te bepalen"}
+              </span>
+            </div>
+
+            {/* Specifieke Contractuele Clausules */}
+            <div className="bg-[#111111] border border-[#2d2d2d] p-5 space-y-4 text-xs leading-relaxed">
+              <div className="border-b border-[#222222] pb-3 flex justify-between items-center">
+                <div className="font-black uppercase text-white text-sm">
+                  {data.contractType === "in dienst" && "Model Arbeidsovereenkomst VVC"}
+                  {data.contractType === "zzp" && "Modelovereenkomst van Opdracht (OvO)"}
+                  {data.contractType === "partnership" && "VVC Partnerovereenkomst & Equity Deelname"}
+                  {data.contractType === "franchise" && "VVC Franchise- & Rayonovereenkomst"}
+                </div>
+                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 font-bold uppercase">
+                  Wettelijk Gevalideerd
+                </span>
+              </div>
+
+              {/* Inhoud per contractuele route */}
+              <div className="space-y-2 text-[#cccccc] font-sans">
+                {data.contractType === "in dienst" && (
+                  <>
+                    <p>
+                      <strong>1. Dienstverband & Functie:</strong> Partijen gaan een arbeidsovereenkomst aan voor een duur van <strong>{data.trajectoryDuration || "1 jaar"}</strong>. Salariëring en vakantiegeld (8%) geschieden conform de Nederlandse arbeidswetgeving.
+                    </p>
+                    <p>
+                      <strong>2. Duur & Beëindiging:</strong> De overeenkomst eindigt van rechtswege na afloop van de overeengekomen termijn. Tussentijdse opzegging is mogelijk met inachtneming van een wettelijke opzegtermijn van één volle kalendermaand.
+                    </p>
+                  </>
+                )}
+
+                {data.contractType === "zzp" && (
+                  <>
+                    <p>
+                      <strong>1. Zelfstandigheid (Geen Gezagsverhouding):</strong> Opdrachtnemer verricht werkzaamheden als zelfstandige zonder personeel (ZZP) op basis van een overeenkomst van opdracht. Er is uitdrukkelijk geen sprake van een fictieve of reële dienstbetrekking.
+                    </p>
+                    <p>
+                      <strong>2. Duur, Facturatie & Beëindiging:</strong> De overeenkomst geldt voor de duur van <strong>{data.trajectoryDuration || "1 jaar"}</strong>. Facturatie geschiedt op basis van gerealiseerde provisies/tarieven met een wederzijdse opzegtermijn van 14 kalenderdagen.
+                    </p>
+                  </>
+                )}
+
+                {data.contractType === "partnership" && (
+                  <>
+                    <p>
+                      <strong>1. Partnerschap & Winstdeling:</strong> Partner treedt toe tot het VVC ecosysteem met recht op winstdeling, permanente netwerk-commissies en equity participation in Quantum Initium conform de overeengekomen staffels.
+                    </p>
+                    <p>
+                      <strong>2. Looptijd, Geheimhouding (NDA) & Uittreding:</strong> Het partnerschap is aangegaan voor <strong>{data.trajectoryDuration || "onbepaalde tijd"}</strong>. Beëindiging geschiedt in goed overleg met behoud van opgebouwde passieve inkomstenstromen conform de clubregels.
+                    </p>
+                  </>
+                )}
+
+                {data.contractType === "franchise" && (
+                  <>
+                    <p>
+                      <strong>1. Franchiseformule & Licentie:</strong> Franchisenemer verkrijgt het exclusieve exploitatierecht op de VVC methodologie, handelsnaam en aangesloten platformen binnen het toegewezen rayon.
+                    </p>
+                    <p>
+                      <strong>2. Looptijd & Overdracht:</strong> De franchiseovereenkomst geldt voor <strong>{data.trajectoryDuration || "3 jaar"}</strong> met recht op verlenging. Beëindiging vereist een formele rayon-overdracht en de-activatie van centrale tokens.
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {/* Digitale Ondertekening Box */}
+              <div className="bg-[#161616] border border-[#333333] p-4 space-y-3 pt-3">
+                <div className="text-xs font-bold uppercase text-white flex items-center gap-1.5">
+                  <BadgeCheck size={14} className="text-magenta" /> * Digitale Ondertekening & Akkoord
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] uppercase text-[#aaaaaa] mb-1">
+                      Volledige Naam Ondertekenaar
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={data.signatureName}
+                      onChange={(e) => onChange({ signatureName: e.target.value })}
+                      placeholder="Voor- en achternaam"
+                      className="w-full bg-[#111111] border border-[#333333] p-2 text-xs text-white focus:outline-none focus:border-magenta"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase text-[#aaaaaa] mb-1">
+                      Datum van Ondertekening
+                    </label>
+                    <input
+                      type="text"
+                      value={data.signatureDate || new Date().toLocaleDateString("nl-NL")}
+                      onChange={(e) => onChange({ signatureDate: e.target.value })}
+                      className="w-full bg-[#111111] border border-[#333333] p-2 text-xs text-white font-mono"
+                    />
+                  </div>
+                </div>
+
+                <label className="flex items-start gap-2.5 cursor-pointer pt-2 group">
+                  <input
+                    type="checkbox"
+                    checked={data.contractSigned}
+                    onChange={(e) =>
+                      onChange({
+                        contractSigned: e.target.checked,
+                        contractTerminationTermsAccepted: e.target.checked,
+                        signatureDate: new Date().toLocaleDateString("nl-NL"),
+                      })
+                    }
+                    className="mt-0.5 accent-magenta w-4 h-4 cursor-pointer"
+                  />
+                  <span className="text-[11px] text-[#cccccc] group-hover:text-white leading-relaxed">
+                    * Ik verklaar de overeenkomst voor <strong>{data.contractType.toUpperCase()}</strong> en de afspraken over duur (<strong>{data.trajectoryDuration}</strong>) en beëindiging te hebben begrepen en onderteken deze digitaal.
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── FINANCIËLE EN ADMINISTRATIEVE GEGEVENS ─── */}
+        <div className="space-y-4 pt-4 border-t border-[#1f1f1f]">
+          <div className="text-xs font-black uppercase text-white tracking-wider flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <CreditCard size={14} className="text-magenta" /> Financiële & Administratieve Gegevens
+            </span>
+            <span className="text-[10px] text-[#777777] font-mono">
+              SEPA & Crypto Payout Bridge
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* IBAN */}
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#aaaaaa] mb-1.5">
+                * Betaalrekening (IBAN)
+              </label>
+              <input
+                type="text"
+                required
+                value={data.iban}
+                onChange={(e) => onChange({ iban: e.target.value })}
+                placeholder="NL91 ABNA 0417 1643 00"
+                className="w-full bg-[#111111] border border-[#262626] p-3 text-xs text-white uppercase font-mono focus:outline-none focus:border-magenta"
+              />
+            </div>
+
+            {/* Tenaamstelling */}
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#aaaaaa] mb-1.5">
+                * Naam Rekeninghouder
+              </label>
+              <input
+                type="text"
+                required
+                value={data.accountHolderName}
+                onChange={(e) => onChange({ accountHolderName: e.target.value })}
+                placeholder="Bijv. J. Drenthe of Drenthe Holding B.V."
+                className="w-full bg-[#111111] border border-[#262626] p-3 text-xs text-white focus:outline-none focus:border-magenta"
+              />
+            </div>
+
+            {/* Uitbetalingsmethode */}
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#aaaaaa] mb-1.5">
+                Uitbetalingsmethode
+              </label>
+              <select
+                value={data.payoutMethod || "sepa"}
+                onChange={(e) => onChange({ payoutMethod: e.target.value as Step2Data["payoutMethod"] })}
+                className="w-full bg-[#111111] border border-[#262626] p-3 text-xs text-white focus:outline-none focus:border-magenta"
+              >
+                <option value="sepa">SEPA Bankoverschrijving (Standaard)</option>
+                <option value="crypto">Crypto Wallet (USDT / USDC)</option>
+                <option value="batch">Wekelijkse Batch Uitbetaling</option>
+              </select>
+            </div>
+
+            {/* Fiscale Status */}
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#aaaaaa] mb-1.5">
+                Fiscale Status & BTW-Regeling
+              </label>
+              <select
+                value={data.taxStatus || "standard"}
+                onChange={(e) => onChange({ taxStatus: e.target.value as Step2Data["taxStatus"] })}
+                className="w-full bg-[#111111] border border-[#262626] p-3 text-xs text-white focus:outline-none focus:border-magenta"
+              >
+                <option value="standard">Standaard BTW (21% belast)</option>
+                <option value="reverse_charge">BTW Verlegd (EU Zakelijk / B2B)</option>
+                <option value="vat_exempt">Vrijgesteld / KOR Regeling</option>
+              </select>
+            </div>
+
+            {/* Factuur E-mailadres */}
+            <div className="sm:col-span-2">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#aaaaaa] mb-1.5">
+                Factuur- en Specificatie E-mailadres
+              </label>
+              <input
+                type="email"
+                value={data.invoiceEmail}
+                onChange={(e) => onChange({ invoiceEmail: e.target.value })}
+                placeholder="facturen@jouwdomein.nl"
+                className="w-full bg-[#111111] border border-[#262626] p-3 text-xs text-white focus:outline-none focus:border-magenta"
+              />
+            </div>
+          </div>
+
+          {/* Inkomstenvoorwaarden akkoord */}
+          <div className="bg-[#111111] border border-[#262626] p-4 text-xs">
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={data.incomeTermsAccepted}
+                onChange={(e) => onChange({ incomeTermsAccepted: e.target.checked })}
+                className="mt-0.5 accent-magenta w-4 h-4 rounded cursor-pointer"
+              />
+              <span className="text-[#cccccc] group-hover:text-white transition-colors leading-relaxed">
+                * Ik ga akkoord met de <strong className="text-white">voorwaarden voor inkomstenontvangst</strong>, commissies en provisiestaffels van VVC. Uitbetalingen worden verwerkt na succesvolle transactieverificatie.
+              </span>
+            </label>
           </div>
         </div>
 

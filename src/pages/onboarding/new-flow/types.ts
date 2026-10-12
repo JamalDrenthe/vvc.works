@@ -11,18 +11,37 @@ export interface RegistrationData {
   city: string
   street: string
   houseNumber: string
+  houseNumberAddition: string
+  postalCode: string
+  country: string
+  preferredLanguage: string
+  secondaryContact: string
+  // Accountbeveiliging en verificatie
+  isEmailVerified: boolean
+  isPhoneVerified: boolean
+  phoneOtpCode: string
+  twoFactorEnabled: boolean
+  twoFactorMethod: "sms" | "authenticator" | "email"
+  loginMethod: "google" | "email" | "passkey"
   birthDate: string // YYYY-MM-DD
+  // Uploads & Documenten
   cvFileName: string
   motivationLetter: string
-  avatarUrl: string
+  avatarUrl: string // Optioneel
   idDocumentName: string
   idFrontDocumentName: string
   idBackDocumentName: string
+  // Bedrijfsstructuur
   referralCode: string
   hasKvk: boolean
   kvkNumber: string
   btwNumber: string
   hasLtd: boolean
+  // Privacy, voorwaarden en toestemmingen
+  privacyAccepted: boolean
+  termsAccepted: boolean
+  partnerDataSharingAccepted: boolean
+  retentionPolicyAccepted: boolean
 }
 
 export interface Step2Data {
@@ -35,6 +54,19 @@ export interface Step2Data {
   hoursPerWeek: string
   trajectoryDuration: "1 jaar" | "2 jaar" | "3 jaar" | "onbepaalde tijd" | ""
   contractType: "in dienst" | "zzp" | "partnership" | "franchise" | ""
+  // Overeenkomsten en juridische status
+  contractSigned: boolean
+  signatureName: string
+  signatureDate: string
+  contractAgreedDuration: string
+  contractTerminationTermsAccepted: boolean
+  // Financiële en administratieve gegevens
+  iban: string
+  accountHolderName: string
+  payoutMethod: "sepa" | "crypto" | "batch"
+  invoiceEmail: string
+  taxStatus: "standard" | "vat_exempt" | "reverse_charge"
+  incomeTermsAccepted: boolean
 }
 
 export interface Step3Data {

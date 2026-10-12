@@ -1,9 +1,11 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router"
 import {
   CheckCircle2,
   RotateCcw,
+  Trash2,
 } from "lucide-react"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/useAuth"
 
@@ -26,6 +28,8 @@ import type {
   EmailConfirmationData,
 } from "./types"
 
+const LOCAL_STORAGE_KEY = "vvc_onboarding_new_flow_state_v2"
+
 const INITIAL_REGISTRATION: RegistrationData = {
   crmosCode: "",
   isCrmosFetched: false,
@@ -37,6 +41,17 @@ const INITIAL_REGISTRATION: RegistrationData = {
   city: "",
   street: "",
   houseNumber: "",
+  houseNumberAddition: "",
+  postalCode: "",
+  country: "Nederland",
+  preferredLanguage: "Nederlands",
+  secondaryContact: "",
+  isEmailVerified: false,
+  isPhoneVerified: false,
+  phoneOtpCode: "",
+  twoFactorEnabled: false,
+  twoFactorMethod: "sms",
+  loginMethod: "google",
   birthDate: "",
   cvFileName: "",
   motivationLetter: "",
@@ -49,6 +64,10 @@ const INITIAL_REGISTRATION: RegistrationData = {
   kvkNumber: "",
   btwNumber: "",
   hasLtd: false,
+  privacyAccepted: false,
+  termsAccepted: false,
+  partnerDataSharingAccepted: false,
+  retentionPolicyAccepted: false,
 }
 
 const INITIAL_STEP2: Step2Data = {
@@ -61,6 +80,17 @@ const INITIAL_STEP2: Step2Data = {
   hoursPerWeek: "20-30 uur",
   trajectoryDuration: "2 jaar",
   contractType: "partnership",
+  contractSigned: false,
+  signatureName: "",
+  signatureDate: "",
+  contractAgreedDuration: "2 jaar",
+  contractTerminationTermsAccepted: false,
+  iban: "",
+  accountHolderName: "",
+  payoutMethod: "sepa",
+  invoiceEmail: "",
+  taxStatus: "standard",
+  incomeTermsAccepted: false,
 }
 
 const INITIAL_STEP3: Step3Data = {
@@ -84,44 +114,43 @@ const INITIAL_STEP4: Step4Data = {
 }
 
 const STEPS = [
-  { id: 1, label: "Kaart 1", title: "Registratie Compleet" },
-  { id: 2, label: "Kaart 2", title: "Wat is VVC" },
+  { id: 1, label: "Kaart 1", title: "Registratie & Beveiliging" },
+  { id: 2, label: "Kaart 2", title: "Overeenkomst & Financiën" },
   { id: 3, label: "Kaart 3", title: "QI (Quantum Initium)" },
   { id: 4, label: "Kaart 4", title: "IQ (Investbotiq)" },
   { id: 5, label: "Kaart 5", title: "Intern Ecosysteem" },
   { id: 6, label: "Kaart 6", title: "Kwaliteitscontrole 1" },
-  { id: 7, label: "Kaart 7", title: "Kwaliteitscontrole 2" },
+  { id: 7, label: "Kaart 7", title: "Controle & Activatie" },
 ]
 
 export function VvcOnboardingNewFlow() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  const [activeStep, setActiveStep] = useState(1)
-  const [emailModalData, setEmailModalData] = useState<EmailConfirmationData | null>(null)
-
-  // Helper to normalize demo/default names & emails
-  const normalizeRegistrationData = (u: typeof user) => {
-    let email = u?.email || ""
-    let firstName = u?.fullName ? u.fullName.split(" ")[0] : ""
-    let lastName = u?.fullName ? u.fullName.split(" ").slice(1).join(" ") : ""
-
-    if (!email || email.toLowerCase() === "ceo@vvc.nl") {
-      email = "voorbeeld@vvc.works"
+  // Load saved state or use initial defaults
+  const loadSavedState = () => {
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY)
+      if (saved) {
+        return JSON.parse(saved)
+      }
+    } catch (e) {
+      console.warn("Could not parse saved onboarding state:", e)
     }
-    if (!firstName || firstName === "CEO") {
-      firstName = "Voornaam"
-    }
-    if (!lastName || lastName === "Account") {
-      lastName = "Achternaam"
-    }
-
-    return { email, firstName, lastName }
+    return null
   }
+
+  const saved = loadSavedState()
+
+  const [activeStep, setActiveStep] = useState<number>(saved?.activeStep || 1)
+  const [emailModalData, setEmailModalData] = useState<EmailConfirmationData | null>(null)
 
   // Form State
   const [registration, setRegistration] = useState<RegistrationData>(() => {
-    const { email, firstName, lastName } = normalizeRegistrationData(user)
+    if (saved?.registration) return saved.registration
+    const email = user?.email && user.email.toLowerCase() !== "ceo@vvc.nl" ? user.email : "voorbeeld@vvc.works"
+    const firstName = user?.fullName && user.fullName.split(" ")[0] !== "CEO" ? user.fullName.split(" ")[0] : "Voornaam"
+    const lastName = user?.fullName && user.fullName.split(" ")[1] !== "Account" ? user.fullName.split(" ").slice(1).join(" ") : "Achternaam"
     return {
       ...INITIAL_REGISTRATION,
       email,
@@ -130,11 +159,48 @@ export function VvcOnboardingNewFlow() {
     }
   })
 
-  const [step2, setStep2] = useState<Step2Data>(INITIAL_STEP2)
-  const [step3, setStep3] = useState<Step3Data>(INITIAL_STEP3)
-  const [step4, setStep4] = useState<Step4Data>(INITIAL_STEP4)
-  const [internalConnections, setInternalConnections] = useState<Record<string, boolean>>({})
-  const [qualityConnections, setQualityConnections] = useState<Record<string, boolean>>({})
+  const [step2, setStep2] = useState<Step2Data>(() => saved?.step2 || INITIAL_STEP2)
+  const [step3, setStep3] = useState<Step3Data>(() => saved?.step3 || INITIAL_STEP3)
+  const [step4, setStep4] = useState<Step4Data>(() => saved?.step4 || INITIAL_STEP4)
+  const [internalConnections, setInternalConnections] = useState<Record<string, boolean>>(
+    () => saved?.internalConnections || {},
+  )
+  const [qualityConnections, setQualityConnections] = useState<Record<string, boolean>>(
+    () => saved?.qualityConnections || {},
+  )
+
+  // Auto-save effect: automatically stores progress to localStorage
+  useEffect(() => {
+    const payload = {
+      activeStep,
+      registration,
+      step2,
+      step3,
+      step4,
+      internalConnections,
+      qualityConnections,
+      savedAt: new Date().toISOString(),
+    }
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload))
+    } catch (e) {
+      console.warn("Auto-save failed:", e)
+    }
+  }, [activeStep, registration, step2, step3, step4, internalConnections, qualityConnections])
+
+  const handleResetFlow = () => {
+    if (confirm("Weet je zeker dat je alle ingevoerde gegevens wilt wissen en opnieuw wilt beginnen?")) {
+      localStorage.removeItem(LOCAL_STORAGE_KEY)
+      setRegistration(INITIAL_REGISTRATION)
+      setStep2(INITIAL_STEP2)
+      setStep3(INITIAL_STEP3)
+      setStep4(INITIAL_STEP4)
+      setInternalConnections({})
+      setQualityConnections({})
+      setActiveStep(1)
+      toast.success("Onboarding gegevens gereset naar beginstatus.")
+    }
+  }
 
   const userEmail = registration.email || user?.email || "voorbeeld@vvc.works"
 
@@ -152,12 +218,18 @@ export function VvcOnboardingNewFlow() {
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto animate-fade-in pb-12">
-      {/* ─── FLOW SWITCHER BANNER ─── */}
+      {/* ─── FLOW SWITCHER BANNER & AUTO-SAVE INDICATOR ─── */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#0d0d0d] border border-[#222222] p-4">
         <div>
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-magenta block mb-0.5">
-            Onboarding Flow Selectie
-          </span>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-magenta">
+              Onboarding Flow Selectie
+            </span>
+            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Voortgang automatisch opgeslagen
+            </span>
+          </div>
           <h1 className="text-base font-black text-white uppercase tracking-tight">
             VVC Onboarding New Flow
           </h1>
@@ -167,6 +239,14 @@ export function VvcOnboardingNewFlow() {
           <span className="px-3 py-1.5 bg-magenta text-white text-xs font-black uppercase tracking-wider">
             ★ New Flow (Actief)
           </span>
+          <button
+            type="button"
+            onClick={handleResetFlow}
+            title="Wis opgeslagen gegevens en herstart"
+            className="px-2.5 py-1.5 border border-[#333333] hover:border-red-500 text-[#888888] hover:text-red-400 text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1"
+          >
+            <Trash2 size={12} /> Reset
+          </button>
           <button
             type="button"
             onClick={() => navigate("/onboarding/old-flow")}
@@ -188,7 +268,7 @@ export function VvcOnboardingNewFlow() {
           </span>
         </div>
 
-        {/* Horizontal scrollable stepper */}
+        {/* Horizontal responsive stepper */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
           {STEPS.map((s) => {
             const isActive = activeStep === s.id
@@ -289,10 +369,16 @@ export function VvcOnboardingNewFlow() {
 
       {activeStep === 7 && (
         <Step7QualityControl2
-          connections={qualityConnections}
+          registration={registration}
+          step2={step2}
+          step3={step3}
+          step4={step4}
+          internalConnections={internalConnections}
+          qualityConnections={qualityConnections}
           userEmail={userEmail}
           onToggleConnection={handleToggleQualityConnection}
           onOpenEmailModal={(modalData) => setEmailModalData(modalData)}
+          onNavigateToStep={(stepNumber) => setActiveStep(stepNumber)}
           onPrev={() => setActiveStep(6)}
         />
       )}
