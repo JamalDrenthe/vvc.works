@@ -35,25 +35,18 @@ export function AutoPlayVideoModal({
     }
   }, [isOpen])
 
-  // Autoplay video on mount
+  // Autoplay video on mount (always muted)
   useEffect(() => {
     if (!isOpen) return
 
     const videoEl = videoRef.current
     if (videoEl) {
+      videoEl.muted = true
+      videoEl.volume = 0
       videoEl.currentTime = 0
-      const playPromise = videoEl.play()
-      if (playPromise !== undefined) {
-        playPromise.catch((err) => {
-          console.warn("Autoplay audio blocked by browser policy, falling back to muted:", err)
-          if (videoEl) {
-            videoEl.muted = true
-            videoEl.play().catch((e) => {
-              console.error("Autoplay muted failed:", e)
-            })
-          }
-        })
-      }
+      videoEl.play().catch((err) => {
+        console.error("Autoplay failed:", err)
+      })
     }
   }, [isOpen, videoSrc])
 
@@ -76,6 +69,7 @@ export function AutoPlayVideoModal({
           src={videoSrc}
           autoPlay
           playsInline
+          muted
           controls={false}
           onEnded={onComplete}
           onError={() => {
