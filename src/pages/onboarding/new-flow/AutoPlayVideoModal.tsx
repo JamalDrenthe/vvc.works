@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react"
+import { createPortal } from "react-dom"
 
 interface AutoPlayVideoModalProps {
   isOpen: boolean
@@ -9,8 +10,10 @@ interface AutoPlayVideoModalProps {
 /**
  * AutoPlayVideoModal
  *
- * Implements an immersive, unobstructed video popup that:
- * - Starts playing automatically upon opening
+ * Implements a fullscreen vertical video popup (9:16 portrait) that:
+ * - Uses React Portal to cover the entire viewport (including headers)
+ * - Correctly fits 9:16 portrait videos without awkward 16:9 letterbox borders
+ * - Automatically plays upon opening
  * - Contains NO controls (no play, no pause, no close button)
  * - Contains NO progress/scrubber bar
  * - Automatically closes when the video reaches the end
@@ -22,6 +25,17 @@ export function AutoPlayVideoModal({
 }: AutoPlayVideoModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
 
+  // Prevent background scrolling while video modal is active
+  useEffect(() => {
+    if (!isOpen) return
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = originalOverflow
+    }
+  }, [isOpen])
+
+  // Autoplay video on mount
   useEffect(() => {
     if (!isOpen) return
 
@@ -31,7 +45,7 @@ export function AutoPlayVideoModal({
       const playPromise = videoEl.play()
       if (playPromise !== undefined) {
         playPromise.catch((err) => {
-          console.warn("Autoplay audio blocked by browser policy, trying muted:", err)
+          console.warn("Autoplay audio blocked by browser policy, falling back to muted:", err)
           if (videoEl) {
             videoEl.muted = true
             videoEl.play().catch((e) => {
@@ -45,13 +59,18 @@ export function AutoPlayVideoModal({
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-2 sm:p-6 lg:p-10 backdrop-blur-md animate-fade-in select-none"
+      className="fixed inset-0 z-[99999] bg-black flex items-center justify-center p-0 m-0 overflow-hidden select-none animate-fade-in"
     >
-      <div className="relative w-full max-w-5xl aspect-video bg-black border border-[#222222] shadow-[0_0_50px_rgba(0,0,0,0.9)] overflow-hidden flex items-center justify-center">
+      {/* 
+        The videos are 9:16 portrait (1080x1920 / 720x1280).
+        On mobile, they fill the screen height (100dvh).
+        On desktop, they are centered with max-w-[480px].
+      */}
+      <div className="relative w-full h-[100dvh] max-w-[480px] flex items-center justify-center bg-black overflow-hidden">
         <video
           ref={videoRef}
           src={videoSrc}
@@ -66,6 +85,7 @@ export function AutoPlayVideoModal({
           className="w-full h-full object-contain pointer-events-none"
         />
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
