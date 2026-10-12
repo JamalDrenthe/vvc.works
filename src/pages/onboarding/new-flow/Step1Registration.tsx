@@ -6,9 +6,11 @@ import {
   ChevronRight,
   Database,
   Shield,
+  CheckCircle2,
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { AutoPlayVideoModal } from "./AutoPlayVideoModal"
 import type { RegistrationData } from "./types"
 
 interface Step1Props {
@@ -21,6 +23,7 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
   const [showCrmosInput, setShowCrmosInput] = useState(false)
   const [crmosInputCode, setCrmosInputCode] = useState(data.crmosCode || "")
   const [showCalendarPicker, setShowCalendarPicker] = useState(false)
+  const [isCrmosVideoOpen, setIsCrmosVideoOpen] = useState(false)
 
   // Calendar Picker state helper
   const parsedBirthDate = data.birthDate ? new Date(data.birthDate) : new Date(1998, 0, 15)
@@ -28,16 +31,18 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
   const [birthMonth, setBirthMonth] = useState(parsedBirthDate.getMonth())
   const [birthDay, setBirthDay] = useState(parsedBirthDate.getDate())
 
-  const handleFetchFromCrmos = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!crmosInputCode.trim()) {
-      toast.error("Voer een geldige CRMos code in.")
-      return
-    }
+  const handleTriggerCrmosSync = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    setIsCrmosVideoOpen(true)
+  }
+
+  const handleCrmosVideoComplete = () => {
+    setIsCrmosVideoOpen(false)
+    const activeCode = crmosInputCode.trim() || "CRMOS-VVC-2026"
 
     // Auto-fill profile from CRMos
     onChange({
-      crmosCode: crmosInputCode.trim(),
+      crmosCode: activeCode,
       isCrmosFetched: true,
       gender: "Man",
       firstName: "Jamal",
@@ -60,7 +65,7 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
       cvFileName: "Curriculum_Vitae_Jamal_Drenthe.pdf",
     })
     toast.success("Profielgegevens succesvol opgehaald uit CRMos!", {
-      description: `CRMos code [${crmosInputCode}] gekoppeld en gevalideerd.`,
+      description: `CRMos code [${activeCode}] gekoppeld en gevalideerd.`,
     })
   }
 
@@ -119,30 +124,58 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
           </p>
         </div>
 
-        {/* CRMos Toggle */}
+        {/* CRMos Box */}
         <div className="w-full sm:w-auto bg-[#111111] border border-[#2a2a2a] p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0">
-          <div className="text-left min-w-0">
+          <div className="text-left min-w-0 pr-2">
             <div className="text-[10px] font-black uppercase text-white tracking-wider flex items-center gap-1.5">
-              <Database size={13} className="text-magenta shrink-0" /> Haal op uit CRMos
+              <Database size={13} className="text-magenta shrink-0" /> Haal data uit CRMos
             </div>
             <div className="text-[10px] text-[#777777]">
-              {data.isCrmosFetched ? "CRMos Data Gekoppeld ✔" : "Heb je een CRMos code?"}
+              {data.isCrmosFetched ? "CRMos Data Gekoppeld ✔" : "Gegevens direct synchroniseren"}
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowCrmosInput(!showCrmosInput)}
-            className="w-full sm:w-auto border border-[#444444] hover:border-magenta text-white font-bold text-[10px] uppercase tracking-wider px-3 py-1.5 transition-colors shrink-0 text-center whitespace-nowrap"
-          >
-            {showCrmosInput ? "Sluit Code Veld" : "Enter Code"}
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => handleTriggerCrmosSync()}
+              className={cn(
+                "w-full sm:w-auto font-black text-xs uppercase tracking-wider px-4 py-2 transition-colors shrink-0 text-center flex items-center justify-center gap-1.5",
+                data.isCrmosFetched
+                  ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                  : "bg-magenta hover:bg-white hover:text-black text-white",
+              )}
+            >
+              {data.isCrmosFetched ? (
+                <>
+                  <CheckCircle2 size={13} /> Opgehaald
+                </>
+              ) : (
+                "Haal data uit CRMos"
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowCrmosInput(!showCrmosInput)}
+              className="border border-[#444444] hover:border-magenta text-[#aaaaaa] hover:text-white font-bold text-[10px] uppercase tracking-wider px-3 py-2 transition-colors shrink-0 text-center whitespace-nowrap"
+              title="Voer optioneel een CRMos code in"
+            >
+              {showCrmosInput ? "Sluit Code" : "Enter Code"}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* AutoPlay Video Modal for CRMos */}
+      <AutoPlayVideoModal
+        isOpen={isCrmosVideoOpen}
+        videoSrc="/videos/vvc-connected-crmos.mp4"
+        onComplete={handleCrmosVideoComplete}
+      />
 
       {/* CRMos Code Input Drawer */}
       {showCrmosInput && (
         <form
-          onSubmit={handleFetchFromCrmos}
+          onSubmit={handleTriggerCrmosSync}
           className="bg-[#120a11] border border-magenta/40 p-4 flex flex-col lg:flex-row gap-3 lg:items-center justify-between animate-fade-in overflow-hidden"
         >
           <div className="text-xs text-white font-bold flex items-center gap-2 min-w-0">
@@ -165,9 +198,15 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
             />
             <button
               type="submit"
-              className="w-full sm:w-auto bg-magenta hover:bg-white hover:text-black text-white text-xs font-black uppercase tracking-wider px-4 py-2 transition-colors shrink-0 text-center whitespace-nowrap"
+              className="w-full sm:w-auto bg-magenta hover:bg-white hover:text-black text-white text-xs font-black uppercase tracking-wider px-4 py-2 transition-colors shrink-0 text-center whitespace-nowrap flex items-center justify-center gap-1.5"
             >
-              Synchroniseren
+              {data.isCrmosFetched ? (
+                <>
+                  <CheckCircle2 size={13} /> Opgehaald
+                </>
+              ) : (
+                "Haal data uit CRMos"
+              )}
             </button>
           </div>
         </form>

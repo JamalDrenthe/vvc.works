@@ -253,21 +253,23 @@ export function Step3QuantumInitium({
           </div>
         </div>
 
-        {/* ─── KOPPEL MET QUANTUM INITIUM (0 naar 100 met e-mail bevestiging) ─── */}
+        {/* ─── KOPPEL MET QUANTUM INITIUM (Pop-up video & 0 naar 100 met e-mail bevestiging) ─── */}
         <div className="space-y-3">
           <div className="text-xs font-black uppercase text-white tracking-wider">
-            * Koppel met Quantum Initium (Loading bar 0 naar 100 met e-mail bevestiging)
+            * Koppel met Quantum Initium (0 naar 100 handshake & e-mail bevestiging)
           </div>
 
           <LoadingBarConnector
             platformId="quantum-initium"
             name="Quantum Initium"
+            buttonLabel="Verbind met Quantum Initium"
+            connectedLabel="Verbonden"
+            videoSrc="/videos/vvc-connected-quantum-initium.mp4"
             description="De centrale backbone van het VVC ecosysteem. Realtime verificatie van partnerrechten."
             isConnected={data.connected}
             userEmail={userEmail}
-            onComplete={(emailData) => {
+            onComplete={() => {
               onChange({ connected: true, progress: 100 })
-              onOpenEmailModal(emailData)
             }}
             onOpenEmailModal={onOpenEmailModal}
           />

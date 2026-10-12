@@ -178,21 +178,23 @@ export function Step4Investbotiq({
           </div>
         </div>
 
-        {/* ─── KOPPEL INVESTBOTIQ (Loading bar 0 naar 100 met e-mail bevestiging) ─── */}
+        {/* ─── KOPPEL INVESTBOTIQ (Pop-up video & 0 naar 100 met e-mail bevestiging) ─── */}
         <div className="space-y-3">
           <div className="text-xs font-black uppercase text-white tracking-wider">
-            * Koppel Investbotiq met VVC (Loading bar 0 naar 100 met e-mail bevestiging)
+            * Koppel Investbotiq met VVC (0 naar 100 handshake & e-mail bevestiging)
           </div>
 
           <LoadingBarConnector
             platformId="investbotiq"
             name="Investbotiq"
+            buttonLabel="Verbind met Investbotiq"
+            connectedLabel="Verbonden"
+            videoSrc="/videos/vvc-connected-investbotiq.mp4"
             description="Algoritmische investerings- en rendementsinfrastructuur."
             isConnected={data.connected}
             userEmail={userEmail}
-            onComplete={(emailData) => {
+            onComplete={() => {
               onChange({ connected: true, progress: 100 })
-              onOpenEmailModal(emailData)
             }}
             onOpenEmailModal={onOpenEmailModal}
           />
