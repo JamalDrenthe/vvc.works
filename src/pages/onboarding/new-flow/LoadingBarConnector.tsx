@@ -39,7 +39,7 @@ export function LoadingBarConnector({
     isConnected
       ? {
           platformName: name,
-          recipientEmail: userEmail || "partner@vvc.works",
+          recipientEmail: userEmail || "info@vvc.works",
           confirmationCode: `VVC-AUTH-${platformId.toUpperCase()}-992`,
           timestamp: "Actief geregistreerd",
         }
@@ -51,7 +51,7 @@ export function LoadingBarConnector({
     setIsRunning(false)
     const emailData: EmailConfirmationData = {
       platformName: name,
-      recipientEmail: userEmail || "partner@vvc.works",
+      recipientEmail: userEmail || "info@vvc.works",
       confirmationCode: `VVC-${platformId.toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}`,
       timestamp: new Date().toLocaleTimeString("nl-NL", {
         hour: "2-digit",

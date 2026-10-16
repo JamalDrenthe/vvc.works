@@ -58,7 +58,7 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
       gender: "Man",
       firstName: "Jamal",
       lastName: "Drenthe",
-      email: "info@jamaldrenthe.com",
+      email: "info@vvc.works",
       phone: "+31 6 12345678",
       country: "Nederland",
       street: "Keizersgracht",
@@ -605,7 +605,7 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
                 required
                 value={data.email}
                 onChange={(e) => onChange({ email: e.target.value, isEmailVerified: false })}
-                placeholder="voorbeeld@vvc.works"
+                placeholder="info@vvc.works"
                 className="w-full bg-[#161616] border border-[#333333] p-2.5 text-xs text-white focus:outline-none focus:border-magenta"
               />
 

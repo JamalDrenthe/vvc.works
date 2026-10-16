@@ -27,8 +27,8 @@ function readSessionFromStorage(): AuthSession | null {
     if (!raw) return null
     const session = JSON.parse(raw) as AuthSession
     if (session?.user) {
-      if (session.user.email === "ceo@vvc.nl") {
-        session.user.email = "voorbeeld@vvc.works"
+      if (session.user.email === "ceo@vvc.nl" || session.user.email === "voorbeeld@vvc.works") {
+        session.user.email = "info@vvc.works"
       }
       if (session.user.fullName === "CEO Account") {
         session.user.fullName = "Voornaam Achternaam"

@@ -104,7 +104,7 @@ export default function LoginPage() {
             setEmail(v)
             if (error) clearError()
           }}
-          placeholder="voorbeeld@vvc.works"
+          placeholder="info@vvc.works"
         />
 
         <Field
@@ -164,7 +164,7 @@ export default function LoginPage() {
               Demo-modus actief
             </div>
             <p className="normal-case tracking-normal font-medium text-[#888888]">
-              Login met <code className="text-white">info@jamaldrenthe.com</code> (CEO/Admin) of{" "}
+              Login met <code className="text-white">info@vvc.works</code> (CEO/Admin) of{" "}
               <code className="text-white">js.drenthe@gmail.com</code> (Vriend) via Google.
             </p>
           </div>

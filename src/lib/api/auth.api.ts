@@ -28,9 +28,9 @@ const MOCK_USERS: Array<{ password: string; session: AuthSession }> = [
       accessToken: "mock-token-ceo",
       user: {
         id: "u_ceo",
-        email: "voorbeeld@vvc.works",
-        fullName: "Voornaam Achternaam",
-        initials: "VA",
+        email: "info@vvc.works",
+        fullName: "VVC Directie",
+        initials: "VD",
         role: "ceo",
         status: "Actief",
       },
@@ -95,7 +95,7 @@ export const authApi = {
           (emailInput === "ceo@vvc.nl" && u.session.user.id === "u_ceo")
         const isPasswordMatch =
           u.password === credentials.password ||
-          (u.session.user.email === "info@jamaldrenthe.com" &&
+          ((u.session.user.email === "info@jamaldrenthe.com" || u.session.user.email === "info@vvc.works") &&
             (credentials.password === "admin" || credentials.password === "ceo")) ||
           (u.session.user.email === "js.drenthe@gmail.com" &&
             (credentials.password === "vriend" || credentials.password === "password" || credentials.password === "vvc"))
@@ -245,7 +245,7 @@ async function toFirebaseSession(user: User): Promise<AuthSession> {
   const email = user.email?.toLowerCase() ?? ""
   let role: UserRole = "vriend"
 
-  if (email === "info@jamaldrenthe.com") {
+  if (email === "info@jamaldrenthe.com" || email === "info@vvc.works") {
     role = "ceo"
   } else if (email === "js.drenthe@gmail.com") {
     role = "vriend"

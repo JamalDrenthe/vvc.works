@@ -36,7 +36,7 @@ const INITIAL_REGISTRATION: RegistrationData = {
   gender: "",
   firstName: "Voornaam",
   lastName: "Achternaam",
-  email: "voorbeeld@vvc.works",
+  email: "info@vvc.works",
   phone: "",
   city: "",
   street: "",
@@ -148,7 +148,7 @@ export function VvcOnboardingNewFlow() {
   // Form State
   const [registration, setRegistration] = useState<RegistrationData>(() => {
     if (saved?.registration) return saved.registration
-    const email = user?.email && user.email.toLowerCase() !== "ceo@vvc.nl" ? user.email : "voorbeeld@vvc.works"
+    const email = user?.email && user.email.toLowerCase() !== "ceo@vvc.nl" && user.email.toLowerCase() !== "voorbeeld@vvc.works" ? user.email : "info@vvc.works"
     const firstName = user?.fullName && user.fullName.split(" ")[0] !== "CEO" ? user.fullName.split(" ")[0] : "Voornaam"
     const lastName = user?.fullName && user.fullName.split(" ")[1] !== "Account" ? user.fullName.split(" ").slice(1).join(" ") : "Achternaam"
     return {
@@ -202,7 +202,7 @@ export function VvcOnboardingNewFlow() {
     }
   }
 
-  const userEmail = registration.email || user?.email || "voorbeeld@vvc.works"
+  const userEmail = registration.email || user?.email || "info@vvc.works"
 
   const handleUpdateRegistration = (updated: Partial<RegistrationData>) => {
     setRegistration((prev) => ({ ...prev, ...updated }))
