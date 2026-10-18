@@ -4,6 +4,11 @@ export default function NotFoundPage() {
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center px-6">
       <div className="max-w-md text-center">
+        <img
+          src="/vvc-logo.svg"
+          alt="VVC Logo"
+          className="w-20 h-20 mx-auto mb-6 drop-shadow-[0_10px_25px_rgba(230,0,126,0.35)]"
+        />
         <div className="text-magenta text-[120px] font-black tracking-tighter leading-none mb-4">
           404
         </div>
