@@ -46,7 +46,7 @@ export function LoadingBarConnector({
       : null,
   )
 
-  const completeConnection = useCallback(() => {
+  const completeConnection = useCallback((openModal = false) => {
     setProgress(100)
     setIsRunning(false)
     const emailData: EmailConfirmationData = {
@@ -61,7 +61,9 @@ export function LoadingBarConnector({
     }
     setLatestEmailData(emailData)
     onComplete(emailData)
-    onOpenEmailModal(emailData)
+    if (openModal) {
+      onOpenEmailModal(emailData)
+    }
     toast.success(`100% Gekoppeld met ${name}!`, {
       description: `E-mailbevestiging succesvol verzonden naar ${emailData.recipientEmail}.`,
     })
