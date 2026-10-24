@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import {
   User,
   Calendar as CalendarIcon,
@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { AutoPlayVideoModal } from "./AutoPlayVideoModal"
+import { fetchCrmosProfileByCode, type CrmosFetchResult } from "@/lib/api/crmos.api"
 import type { RegistrationData } from "./types"
 
 interface Step1Props {
@@ -42,56 +43,45 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
   const [birthMonth, setBirthMonth] = useState(parsedBirthDate.getMonth())
   const [birthDay, setBirthDay] = useState(parsedBirthDate.getDate())
 
+  const pendingFetchRef = useRef<Promise<CrmosFetchResult> | null>(null)
+
   const handleTriggerCrmosSync = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
+    const activeCode = crmosInputCode.trim() || "CRMOS-VVC-2026"
+    // Start fetching from CRMos Firebase immediately in parallel with video playback
+    pendingFetchRef.current = fetchCrmosProfileByCode(activeCode)
     setIsCrmosVideoOpen(true)
   }
 
-  const handleCrmosVideoComplete = () => {
+  const handleCrmosVideoComplete = async () => {
     setIsCrmosVideoOpen(false)
     const activeCode = crmosInputCode.trim() || "CRMOS-VVC-2026"
 
-    // Auto-fill profile from CRMos
-    onChange({
-      crmosCode: activeCode,
-      isCrmosFetched: true,
-      gender: "Man",
-      firstName: "Jamal",
-      lastName: "Drenthe",
-      email: "info@vvc.works",
-      phone: "+31 6 12345678",
-      country: "Nederland",
-      street: "Keizersgracht",
-      houseNumber: "421",
-      houseNumberAddition: "A",
-      postalCode: "1016 EK",
-      city: "Amsterdam",
-      preferredLanguage: "Nederlands",
-      secondaryContact: "contact@jamaldrenthe.com",
-      isEmailVerified: true,
-      isPhoneVerified: true,
-      twoFactorEnabled: true,
-      twoFactorMethod: "authenticator",
-      loginMethod: "google",
-      birthDate: "1996-04-18",
-      referralCode: "VVC-FOUNDER-ELITE",
-      hasKvk: true,
-      kvkNumber: "84729103",
-      btwNumber: "NL847291032B01",
-      hasLtd: true,
-      avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-      idDocumentName: "Paspoort_NL_Geverifieerd.pdf",
-      idFrontDocumentName: "ID_NL_Voorkant_Geverifieerd.pdf",
-      idBackDocumentName: "ID_NL_Achterkant_Geverifieerd.pdf",
-      cvFileName: "Curriculum_Vitae_Jamal_Drenthe.pdf",
-      privacyAccepted: true,
-      termsAccepted: true,
-      partnerDataSharingAccepted: true,
-      retentionPolicyAccepted: true,
-    })
-    toast.success("Profielgegevens succesvol opgehaald uit CRMos!", {
-      description: `CRMos code [${activeCode}] gekoppeld en gevalideerd.`,
-    })
+    try {
+      const result = pendingFetchRef.current
+        ? await pendingFetchRef.current
+        : await fetchCrmosProfileByCode(activeCode)
+
+      if (result.success && result.data) {
+        onChange({
+          ...result.data,
+          isCrmosFetched: true,
+        })
+        toast.success("Profielgegevens succesvol opgehaald uit CRMos!", {
+          description:
+            result.source === "crmos-firestore"
+              ? `Live gekoppeld met CRMos database [${activeCode}].`
+              : `CRMos code [${activeCode}] gekoppeld en gevalideerd.`,
+        })
+      } else {
+        toast.error(result.message || "Geen profiel gevonden in CRMos.")
+      }
+    } catch (err) {
+      console.error("Fout bij ophalen CRMos data:", err)
+      toast.error("Kon CRMos data niet ophalen. Controleer de code en verbinding.")
+    } finally {
+      pendingFetchRef.current = null
+    }
   }
 
   const handleSendEmailVerification = () => {
