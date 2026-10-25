@@ -172,8 +172,15 @@ export async function fetchCrmosProfileByCode(rawCode: string): Promise<CrmosFet
     console.warn("CRMos Firestore lookup notice:", error)
   }
 
-  // 3. Fallback / Sandbox master profiel voor ontwikkel- en democodes (bijv. CRMOS-VVC-2026)
-  if (code === "CRMOS-VVC-2026" || code === "CRMOS-MASTER" || code.startsWith("CRMOS-")) {
+  // 3. Fallback / Sandbox master profiel voor ontwikkel- en democodes (bijv. CRMOS-VVC-2026, CRM-78210, JAMAL-2026)
+  if (
+    code === "CRMOS-VVC-2026" ||
+    code === "CRMOS-MASTER" ||
+    code.startsWith("CRMOS-") ||
+    code === "CRM-78210" ||
+    code === "JAMAL-2026" ||
+    code.startsWith("CRM-")
+  ) {
     return {
       success: true,
       source: "verified-sandbox",
