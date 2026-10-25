@@ -149,8 +149,13 @@ export function Sidebar({ isMobileMenuOpen, onCloseMobileMenu }: SidebarProps) {
             navigate("/dashboard")
             onCloseMobileMenu()
           }}
-          className="flex items-center select-none cursor-pointer"
+          className="flex items-center select-none cursor-pointer group"
         >
+          <img
+            src="/vvc-logo.svg"
+            alt="VVC Logo"
+            className="w-9 h-9 mr-3 rounded-full shadow-[0_0_12px_rgba(230,0,126,0.25)] group-hover:scale-105 transition-transform shrink-0"
+          />
           <span className="font-black italic text-white text-3xl tracking-tighter">
             VVC
           </span>

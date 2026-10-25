@@ -19,6 +19,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { AutoPlayVideoModal } from "./AutoPlayVideoModal"
 import { fetchCrmosProfileByCode, type CrmosFetchResult } from "@/lib/api/crmos.api"
+import { CompanyLogoRenderer } from "@/components/landing/CompanyLogos"
 import type { RegistrationData } from "./types"
 
 interface Step1Props {
@@ -279,6 +280,36 @@ export function Step1Registration({ data, onChange, onNext }: Step1Props) {
           </div>
         </form>
       )}
+
+      {/* ─── SAMENWERKINGEN & BEDRIJFSLOGO'S TRUST BANNER ─── */}
+      <div className="bg-[#0e0e0e] border border-[#222222] p-4 rounded-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-center gap-2.5">
+          <span className="p-1.5 bg-magenta/10 border border-magenta/30 rounded text-magenta shrink-0">
+            <Sparkles size={14} />
+          </span>
+          <div>
+            <div className="text-xs font-black uppercase text-white tracking-wider flex items-center gap-2">
+              Officiële Samenwerkingen &amp; Bedrijfsnetwerken
+              <span className="text-[10px] text-emerald-400 font-bold bg-emerald-950/60 border border-emerald-800/40 px-1.5 py-0.5 rounded">
+                126+ Partners
+              </span>
+            </div>
+            <div className="text-[11px] text-[#777777]">
+              Directe verificatie &amp; beloningen gekoppeld aan toonaangevende fintechs.
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 opacity-80 hover:opacity-100 transition-opacity">
+          <CompanyLogoRenderer type="revolut" className="h-4 w-auto grayscale hover:grayscale-0 transition-all" />
+          <CompanyLogoRenderer type="bunq" className="h-4 w-auto grayscale hover:grayscale-0 transition-all" />
+          <CompanyLogoRenderer type="barclays" className="h-4 w-auto grayscale hover:grayscale-0 transition-all" />
+          <CompanyLogoRenderer type="monzo" className="h-4 w-auto grayscale hover:grayscale-0 transition-all" />
+          <CompanyLogoRenderer type="traderepublic" className="h-3.5 w-auto grayscale hover:grayscale-0 transition-all" />
+          <CompanyLogoRenderer type="boostplug" className="h-4 w-auto grayscale hover:grayscale-0 transition-all" />
+          <CompanyLogoRenderer type="crmos" className="h-4 w-auto grayscale hover:grayscale-0 transition-all" />
+        </div>
+      </div>
 
       {/* ─── FORM ─── */}
       <form onSubmit={validateAndProceed} className="space-y-8">
