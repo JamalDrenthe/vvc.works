@@ -1,22 +1,19 @@
 import { Outlet, Link, useLocation } from "react-router"
-import { Star } from "lucide-react"
-import { LandingTrustSection } from "@/components/landing/LandingTrustSection"
 
 /**
- * Hoofdlayout voor publieke landingspagina's & auth (Login, Register).
- * Biedt een hoogwaardige split-screen weergave met officiële samenwerkingen,
- * geverifieerde bedrijfslogo's en partnerreviews.
+ * Rustige, exclusieve hoofdlayout voor publieke auth-pagina's (Login, Register).
+ * Focus op rust, esthetiek, privacy en directe toegang zonder afleiding.
  */
 export function AuthLayout() {
   const location = useLocation()
   const isRegister = location.pathname.includes("/register")
 
   return (
-    <div className="min-h-screen bg-black text-white relative overflow-x-hidden selection:bg-magenta selection:text-white">
+    <div className="min-h-screen bg-black text-white relative overflow-x-hidden selection:bg-magenta selection:text-white flex flex-col justify-between">
       {/* ─── ACHTERGROND SFEERLIJNEN & SUBTIELE GLOED ─── */}
-      <div className="fixed inset-0 pointer-events-none opacity-25">
-        <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-magenta to-transparent" />
-        <div className="absolute top-1/3 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      <div className="fixed inset-0 pointer-events-none opacity-20">
+        <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-magenta/40 to-transparent" />
+        <div className="absolute top-1/3 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-magenta/10 rounded-full blur-3xl" />
       </div>
 
@@ -43,55 +40,29 @@ export function AuthLayout() {
             </div>
           </Link>
 
-          {/* Social Proof Pills in Header */}
+          {/* Actieknop Rechts in Header */}
           <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-[#0d0d0d] border border-[#222222] rounded-full text-[11px] text-[#888888]">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="font-bold text-white">126+</span> Bedrijfssamenwerkingen
-              <span className="text-[#444444]">|</span>
-              <div className="flex text-amber-400 items-center">
-                <Star size={11} className="fill-amber-400" />
-                <span className="text-white font-bold ml-1">5.0</span>
-              </div>
-            </div>
-
             <Link
               to={isRegister ? "/login" : "/register"}
-              className="text-[11px] font-black uppercase tracking-wider px-3.5 py-1.5 border border-[#333333] hover:border-magenta bg-[#111111] text-white rounded transition-colors"
+              className="text-[11px] font-black uppercase tracking-wider px-4 py-2 border border-[#333333] hover:border-magenta bg-[#111111] text-white rounded transition-colors"
             >
               {isRegister ? "Naar Inloggen" : "Lid Worden"}
             </Link>
           </div>
         </header>
 
-        {/* ─── HOOFDCONTENT / LANDINGSPAGINA GRID ─── */}
-        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start">
-            {/* LINKER KOLOM: HET AUTH / FORMULIER DEEL */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-start w-full">
-              <Outlet />
-            </div>
-
-            {/* RECHTER KOLOM: SAMENWERKINGEN, BEDRIJFSLOGO'S & REVIEWS */}
-            <div className="lg:col-span-7 w-full lg:sticky lg:top-8">
-              <LandingTrustSection />
-            </div>
+        {/* ─── HOOFDCONTENT / GECENTREERD & RUSTIG ─── */}
+        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 flex items-center justify-center">
+          <div className="w-full flex justify-center">
+            <Outlet />
           </div>
         </main>
 
         {/* ─── FOOTER ─── */}
-        <footer className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 border-t border-[#181818] flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] font-bold tracking-[0.15em] uppercase text-[#555555]">
-          <div className="flex items-center gap-2">
-            <span>© {new Date().getFullYear()} VVC Platform</span>
-            <span>·</span>
-            <span className="text-white">Executie is de enige waarheid.</span>
-          </div>
-          <div className="flex items-center gap-4 text-[#666666]">
-            <span>126+ Partnernetwerken</span>
-            <span>·</span>
-            <span>GDPR &amp; AVG Gecertificeerd</span>
-            <span>·</span>
-            <span className="text-magenta">24/7 API Monitoring</span>
+        <footer className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 border-t border-[#181818] flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] font-medium text-[#555555]">
+          <span>© {new Date().getFullYear()} Verdienende Vrienden Club. Alle rechten voorbehouden.</span>
+          <div className="flex items-center gap-6">
+            <span className="text-[#444444]">Beveiligde SSL-verbinding</span>
           </div>
         </footer>
       </div>

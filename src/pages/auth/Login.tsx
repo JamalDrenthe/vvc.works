@@ -47,18 +47,15 @@ export default function LoginPage() {
 
   return (
     <div className="w-full max-w-md">
-      <div className="mb-10">
-        <div className="inline-block border border-magenta text-magenta text-[10px] font-black px-3 py-1 uppercase tracking-[0.2em] mb-6">
+      <div className="mb-8">
+        <div className="inline-block border border-magenta text-magenta text-[10px] font-black px-3 py-1 uppercase tracking-[0.2em] mb-4">
           Toegang Vereist
         </div>
-        <h1 className="text-4xl lg:text-5xl font-black text-white uppercase leading-[1.05] tracking-tighter mb-3">
+        <h1 className="text-4xl lg:text-5xl font-black text-white uppercase leading-[1.05] tracking-tighter">
           Log in op
           <br />
           <span className="text-magenta">je platform.</span>
         </h1>
-        <p className="text-[#888888] text-sm">
-          Centrale toegang tot Onboarding, Dashboard en het VVC App-ecosysteem.
-        </p>
       </div>
 
       <div className="bg-[#0a0a0a] border border-[#222222] p-8 space-y-6">
