@@ -1,4 +1,4 @@
-import { useLocation, useParams } from "react-router"
+import { Link, useLocation, useParams } from "react-router"
 import { Bell, Layers, Menu, Search } from "lucide-react"
 
 interface HeaderProps {
@@ -31,17 +31,28 @@ export function Header({ onOpenMobileMenu }: HeaderProps) {
   const isDashboard = location.pathname === "/dashboard"
 
   return (
-    <header className="h-24 border-b border-[#222222] flex items-center justify-between px-8 lg:px-12 shrink-0 z-10 bg-black/90 backdrop-blur-sm sticky top-0">
-      <div className="flex items-center gap-4">
+    <header className="h-24 border-b border-[#222222] flex items-center justify-between px-4 sm:px-8 lg:px-12 shrink-0 z-10 bg-black/90 backdrop-blur-sm sticky top-0">
+      <div className="flex items-center gap-3 sm:gap-4">
         <button
           type="button"
-          className="md:hidden text-white"
+          className="md:hidden text-white hover:text-magenta transition-colors"
           onClick={onOpenMobileMenu}
           aria-label="Open menu"
         >
           <Menu size={24} />
         </button>
-        <h1 className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-3">
+        <Link
+          to="/dashboard"
+          className="md:hidden flex items-center select-none shrink-0"
+          aria-label="VVC Dashboard"
+        >
+          <img
+            src="/vvc-logo.svg"
+            alt="VVC"
+            className="w-8 h-8 rounded-full shadow-[0_0_10px_rgba(230,0,126,0.3)] shrink-0"
+          />
+        </Link>
+        <h1 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight flex items-center gap-3">
           {isAppPage && <Layers className="text-magenta" size={24} />}
           {title}
           {isDashboard && (
