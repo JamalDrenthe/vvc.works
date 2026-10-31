@@ -1,7 +1,11 @@
 import type { Auth } from "firebase/auth"
+import type { Firestore } from "firebase/firestore"
 import { config } from "@/lib/config"
 
-export async function getFirebaseAuth(): Promise<Auth> {
+let authPromise: Promise<Auth> | null = null
+let firestorePromise: Promise<Firestore> | null = null
+
+function validateFirebaseConfig() {
   const { apiKey, authDomain, projectId, appId } = config.firebase
   const missing = [
     !apiKey && "VITE_FIREBASE_API_KEY",
@@ -13,16 +17,40 @@ export async function getFirebaseAuth(): Promise<Auth> {
   if (missing.length > 0) {
     throw new Error(`Firebase-configuratie ontbreekt: ${missing.join(", ")}.`)
   }
+}
 
-  const [{ getApps, initializeApp }, { getAuth }] = await Promise.all([
-    import("firebase/app"),
-    import("firebase/auth"),
-  ])
+async function getFirebaseApp() {
+  validateFirebaseConfig()
+  const { getApps, initializeApp } = await import("firebase/app")
   const existingApp = getApps().find((app) => app.name === "[DEFAULT]")
-  if (existingApp && existingApp.options.projectId !== projectId) {
+  if (existingApp && existingApp.options.projectId !== config.firebase.projectId) {
     throw new Error("Firebase is al geïnitialiseerd voor een ander project.")
   }
+  return existingApp ?? initializeApp(config.firebase)
+}
 
-  const app = existingApp ?? initializeApp(config.firebase)
-  return getAuth(app)
+export async function getFirebaseAuth(): Promise<Auth> {
+  if (!authPromise) {
+    authPromise = (async () => {
+      const [{ getAuth }, app] = await Promise.all([
+        import("firebase/auth"),
+        getFirebaseApp(),
+      ])
+      return getAuth(app)
+    })()
+  }
+  return authPromise
+}
+
+export async function getFirebaseFirestore(): Promise<Firestore> {
+  if (!firestorePromise) {
+    firestorePromise = (async () => {
+      const [{ getFirestore }, app] = await Promise.all([
+        import("firebase/firestore"),
+        getFirebaseApp(),
+      ])
+      return getFirestore(app)
+    })()
+  }
+  return firestorePromise
 }

@@ -78,7 +78,7 @@ const INITIAL_PROSPECTS: Prospect[] = [
     stage: "Double Team Pilot",
     expectedBonus: "€ 1.631",
     lastContact: "3 dgn geleden",
-    notes: "Factuurstroom van € 80k/mnd. Pitch gepland met Daan Koster.",
+    notes: "Factuurstroom van €80k p/m. Pitch gepland met Daan Koster.",
     priority: "High",
   },
   {

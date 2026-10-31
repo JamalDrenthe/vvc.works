@@ -1,31 +1,94 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="270 48 460 460" width="100%" height="100%">
   <defs>
-    <radialGradient id="vvc-badge-bg" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#141419" />
-      <stop offset="75%" stop-color="#08080a" />
-      <stop offset="100%" stop-color="#020202" />
+    <!-- Outer ring gradient matching the multi-stop pink, magenta, and deep plum border -->
+    <linearGradient id="ringGrad1" x1="15%" y1="10%" x2="88%" y2="85%">
+      <stop offset="0%" stop-color="#a54a97" />
+      <stop offset="35%" stop-color="#df8fd9" />
+      <stop offset="68%" stop-color="#e59be0" />
+      <stop offset="86%" stop-color="#491444" />
+      <stop offset="100%" stop-color="#b85ca9" />
+    </linearGradient>
+
+    <!-- Secondary subtle overlay gradient to capture the bottom-left soft pink and top-left deep rose -->
+    <linearGradient id="ringGrad2" x1="85%" y1="15%" x2="15%" y2="85%">
+      <stop offset="0%" stop-color="#e89ee2" stop-opacity="0.85" />
+      <stop offset="45%" stop-color="#d987d2" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#eb9fe5" stop-opacity="0.9" />
+    </linearGradient>
+
+    <!-- Gradient for the italic period dot -->
+    <linearGradient id="dotGrad" x1="20%" y1="15%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#e36cd0" />
+      <stop offset="55%" stop-color="#d44ec0" />
+      <stop offset="100%" stop-color="#c338ae" />
+    </linearGradient>
+
+    <!-- Obsidian dark badge fill for OLED dark mode -->
+    <radialGradient id="vvcDarkBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#14141c" />
+      <stop offset="70%" stop-color="#08080c" />
+      <stop offset="100%" stop-color="#020204" />
     </radialGradient>
-    <filter id="vvc-glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#e6007e" flood-opacity="0.5" />
+
+    <!-- Ambient magenta drop shadow -->
+    <filter id="vvcGlow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#e36cd0" flood-opacity="0.45" />
     </filter>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;900&amp;display=swap');
-      .vvc-lettermark {
-        font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-weight: 900;
-        font-style: italic;
-        letter-spacing: -0.05em;
-        text-anchor: middle;
-        dominant-baseline: central;
-      }
-    </style>
   </defs>
 
-  <!-- Buitenste cirkelrand in VVC Magenta met subtiele gloed -->
-  <circle cx="256" cy="256" r="236" fill="url(#vvc-badge-bg)" stroke="#e6007e" stroke-width="18" filter="url(#vvc-glow)" />
+  <!-- Main Outer Circle -->
+  <circle
+    cx="500"
+    cy="278"
+    r="214"
+    fill="url(#vvcDarkBg)"
+    stroke="url(#ringGrad1)"
+    stroke-width="5.5"
+    filter="url(#vvcGlow)"
+  />
 
-  <!-- VVC. Merknaam -->
-  <text x="246" y="258" class="vvc-lettermark" font-size="142" fill="#ffffff">
-    VVC<tspan fill="#e6007e" font-style="normal">.</tspan>
-  </text>
+  <!-- Blended secondary stroke for exact angular color transitions -->
+  <circle
+    cx="500"
+    cy="278"
+    r="214"
+    fill="none"
+    stroke="url(#ringGrad2)"
+    stroke-width="5.5"
+    stroke-dasharray="480 865"
+    stroke-dashoffset="-290"
+    stroke-linecap="round"
+  />
+
+  <!-- "VVC" Heavy Italic Letterforms -->
+  <g fill="#ffffff" stroke="#ffffff" stroke-width="0.6" stroke-linejoin="round">
+    <!-- First 'V' -->
+    <path d="M 354 223 L 387.5 223 L 392.5 296 L 426.5 223 L 459 223 L 405.5 330 L 369.5 330 Z" />
+
+    <!-- Second 'V' -->
+    <path d="M 459 223 L 492.5 223 L 497.5 296 L 531.5 223 L 564 223 L 510.5 330 L 474.5 330 Z" />
+
+    <!-- Italic 'C' -->
+    <path d="M 657 260
+             C 655 234, 636 220, 608 220
+             C 574 220, 549 246, 546 282
+             C 543 313, 565 332, 598 332
+             C 626 332, 646 317, 652 291
+             L 620 288
+             C 616 301, 608 306, 598 306
+             C 583 306, 577 295, 579 280
+             C 581 260, 592 246, 608 246
+             C 618 246, 624 252, 625 263
+             Z" />
+  </g>
+
+  <!-- Tilted Magenta Dot ('.') -->
+  <ellipse
+    cx="669"
+    cy="317.5"
+    rx="15.2"
+    ry="13.4"
+    transform="rotate(-24 669 317.5)"
+    fill="url(#dotGrad)"
+  />
 </svg>
