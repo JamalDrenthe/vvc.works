@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react"
 import {
   Download,
-  Sparkles,
 } from "lucide-react"
 import {
   AreaChart,
@@ -96,14 +95,6 @@ const PERFORMANCE_DATA: Record<TimeRange, {
     ],
   },
 }
-
-const SECTOR_METRICS = [
-  { sector: "Banken & Neobanken", volume: 44200, yieldRate: "89%" },
-  { sector: "Crypto & Web3", volume: 38600, yieldRate: "94%" },
-  { sector: "HR & Flex-werk", volume: 29400, yieldRate: "82%" },
-  { sector: "Factoring & Trade", volume: 26800, yieldRate: "91%" },
-  { sector: "Betalingen & BNPL", volume: 21500, yieldRate: "78%" },
-]
 
 const LEADERBOARD: LeaderboardUser[] = [
   {
@@ -243,9 +234,9 @@ export default function AnalyticsPage() {
       </section>
 
       {/* ─── CHARTS ─── */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <section>
         {/* Main Trend Chart */}
-        <div className="lg:col-span-2 bg-[#0a0a0a] border border-[#222222] p-6 lg:p-8 flex flex-col justify-between">
+        <div className="bg-[#0a0a0a] border border-[#222222] p-6 lg:p-8 flex flex-col justify-between">
           <div className="flex justify-between items-center mb-6">
             <div>
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-magenta mb-1">
@@ -319,50 +310,6 @@ export default function AnalyticsPage() {
                 />
               </AreaChart>
             </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Sector Yield Breakdown */}
-        <div className="bg-[#0a0a0a] border border-[#222222] p-6 lg:p-8 flex flex-col justify-between">
-          <div>
-            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-magenta mb-1">
-              Spreiding
-            </div>
-            <h2 className="text-xl font-black text-white uppercase tracking-tight mb-6">
-              Sectoren met hoogste Yield
-            </h2>
-
-            <div className="space-y-4">
-              {SECTOR_METRICS.map((item) => (
-                <div key={item.sector} className="border-b border-[#1c1c1c] pb-3 last:border-none">
-                  <div className="flex justify-between items-center text-xs mb-1.5">
-                    <span className="font-bold text-white">{item.sector}</span>
-                    <span className="text-magenta font-black">
-                      € {item.volume.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-[11px] text-[#666666]">
-                    <span>Uitbetalingsratio</span>
-                    <span className="text-white font-medium">{item.yieldRate}</span>
-                  </div>
-                  <div className="w-full bg-[#181818] h-1.5 mt-2">
-                    <div
-                      className="bg-magenta h-1.5"
-                      style={{
-                        width: `${Math.min(100, (item.volume / 50000) * 100)}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-6 pt-4 border-t border-[#222222] flex items-center justify-between text-[11px] text-[#888888]">
-            <span>Bron: 126 Bedrijven Matrix</span>
-            <span className="text-white font-bold flex items-center gap-1">
-              Geauditeerd <Sparkles size={12} className="text-magenta" />
-            </span>
           </div>
         </div>
       </section>
