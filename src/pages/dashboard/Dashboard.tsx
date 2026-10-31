@@ -386,12 +386,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="pt-6 mt-6 border-t border-[#1a1a1a]">
-            <div className="text-[11px] font-mono text-[#666666] flex items-center justify-between">
-              <span>Firebase Channel: activity_feed</span>
-              <span className="text-magenta font-bold">100% Validated</span>
-            </div>
-          </div>
+
         </div>
       </section>
     </div>
