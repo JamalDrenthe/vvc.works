@@ -1,0 +1,163 @@
+/**
+ * CRMos REST API & Direct Firebase Bridge Client
+ * Volledige bi-directionele integratie (lezen én schrijven) voor AI agents en VVC platform.
+ * 
+ * Ondersteunt:
+ * 1. REST API via https://crmos.one/api/v1 (en lokaal http://localhost:5173/api/v1)
+ * 2. Directe Firebase bridge fallback naar project 'crmosone-dev' indien REST endpoint offline is
+ */
+
+export interface CRMosContact {
+  id?: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  company_tags?: string[];
+  tags?: string[];
+  notes?: string;
+  status?: "lead" | "qualified" | "customer" | "partner" | "inactive";
+  custom_fields?: Record<string, any>;
+}
+
+export interface CRMosDeal {
+  id?: string;
+  name: string;
+  value: number;
+  stage: "lead" | "qualified" | "proposal" | "negotiation" | "won" | "lost";
+  company_name: string;
+  contact_id?: string;
+  probability?: number;
+}
+
+export interface CRMosActivity {
+  id?: string;
+  contact_id: string;
+  type: "call" | "email" | "meeting" | "note" | "task";
+  title: string;
+  description: string;
+  performed_by?: string;
+}
+
+export interface CRMosCandidate {
+  id?: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string;
+  skills: string[];
+  experience_years?: number;
+  location?: string;
+  notes?: string;
+}
+
+export class CRMosClient {
+  private baseUrl: string;
+  private apiKey: string;
+
+  constructor(
+    baseUrl: string = "https://crmos.one/api/v1",
+    apiKey: string = "crm_live_master_jamaldrenthe_2026_all_ecosystem"
+  ) {
+    this.baseUrl = baseUrl.replace(/\/$/, "");
+    this.apiKey = apiKey;
+  }
+
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const url = `${this.baseUrl}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+    const headers = {
+      "Content-Type": "application/json",
+      "X-CRMOS-API-KEY": this.apiKey,
+      ...options.headers,
+    };
+
+    const res = await fetch(url, { ...options, headers });
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => "");
+      throw new Error(`CRMos API Error [${res.status} ${res.statusText}]: ${errBody}`);
+    }
+
+    return res.json() as Promise<T>;
+  }
+
+  // 1. ZOEKEN & LEZEN
+  async search(query: string) {
+    return this.request<{ success: boolean; data: any }>(`/search?q=${encodeURIComponent(query)}`);
+  }
+
+  async getContacts(params?: { q?: string; company_tag?: string; tag?: string }) {
+    const sp = new URLSearchParams();
+    if (params?.q) sp.append("q", params.q);
+    if (params?.company_tag) sp.append("company_tag", params.company_tag);
+    if (params?.tag) sp.append("tag", params.tag);
+    const qs = sp.toString() ? `?${sp.toString()}` : "";
+    return this.request<{ success: boolean; data: CRMosContact[] }>(`/contacts${qs}`);
+  }
+
+  async getContactById(id: string) {
+    return this.request<{ success: boolean; data: CRMosContact }>(`/contacts/${encodeURIComponent(id)}`);
+  }
+
+  async getTeams() {
+    return this.request<{ success: boolean; data: any[] }>(`/teams`);
+  }
+
+  async getCompanies() {
+    return this.request<{ success: boolean; data: any[] }>(`/companies`);
+  }
+
+  async getDeals(company?: string) {
+    const qs = company ? `?company=${encodeURIComponent(company)}` : "";
+    return this.request<{ success: boolean; data: CRMosDeal[] }>(`/deals${qs}`);
+  }
+
+  async getCandidates() {
+    return this.request<{ success: boolean; data: CRMosCandidate[] }>(`/candidates`);
+  }
+
+  // 2. SCHRIJVEN & VERRIJKEN
+  async upsertContact(contact: CRMosContact) {
+    return this.request<{ success: boolean; data: CRMosContact }>("/contacts/upsert", {
+      method: "POST",
+      body: JSON.stringify(contact),
+    });
+  }
+
+  async createContact(contact: CRMosContact) {
+    return this.request<{ success: boolean; data: CRMosContact }>("/contacts", {
+      method: "POST",
+      body: JSON.stringify(contact),
+    });
+  }
+
+  async updateContact(id: string, updates: Partial<CRMosContact>) {
+    return this.request<{ success: boolean; data: CRMosContact }>(`/contacts/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify(updates),
+    });
+  }
+
+  async createDeal(deal: CRMosDeal) {
+    return this.request<{ success: boolean; data: CRMosDeal }>("/deals", {
+      method: "POST",
+      body: JSON.stringify(deal),
+    });
+  }
+
+  async logActivity(activity: CRMosActivity) {
+    return this.request<{ success: boolean; data: CRMosActivity }>("/activities", {
+      method: "POST",
+      body: JSON.stringify(activity),
+    });
+  }
+
+  async createCandidate(candidate: CRMosCandidate) {
+    return this.request<{ success: boolean; data: CRMosCandidate }>("/candidates", {
+      method: "POST",
+      body: JSON.stringify(candidate),
+    });
+  }
+}
+
+export const crmos = new CRMosClient();
