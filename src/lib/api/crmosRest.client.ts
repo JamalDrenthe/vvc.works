@@ -1,11 +1,28 @@
 /**
- * CRMos REST API & Direct Firebase Bridge Client
+ * CRMos REST API & Bi-directionele Integratie Client
  * Volledige bi-directionele integratie (lezen én schrijven) voor AI agents en VVC platform.
  * 
- * Ondersteunt:
- * 1. REST API via https://crmos.one/api/v1 (en lokaal http://localhost:5173/api/v1)
- * 2. Directe Firebase bridge fallback naar project 'crmosone-dev' indien REST endpoint offline is
+ * Voldoet aan de universele ecosysteem-spelregels:
+ * - Base URL: https://crmos.one/api/v1 (of lokaal http://localhost:5173/api/v1)
+ * - Header: X-CRMOS-API-KEY: crm_live_vvc_verdienende_vrienden_club_2026 (of Master Key)
+ * - Header: Content-Type: application/json
  */
+
+export const CRMOS_API_KEYS = {
+  MASTER: "crm_live_master_jamaldrenthe_2026_all_ecosystem",
+  VVC: "crm_live_vvc_verdienende_vrienden_club_2026",
+  SPONTIVA: "crm_live_spontiva_recruitment_2026",
+  BOOSTPLUG: "crm_live_boostplug_energy_iot_2026",
+  QUANTUM_INITIUM: "crm_live_quantum_initium_enterprise_2026",
+  IMMIGRATIEPUNT: "crm_live_immigratiepunt_portal_2026",
+  WONINGVRY: "crm_live_woningvry_realestate_2026",
+  DJOBBA_WORKS: "crm_live_djobba_works_freelance_2026",
+  TRUSTING_WORK: "crm_live_trusting_work_staffing_2026",
+  LOGS_RENT: "crm_live_logs_rent_logistics_2026",
+  ZHEAVENZY: "crm_live_zheavenzy_atelier_2026",
+  XABI_WORLD: "crm_live_xabi_world_international_2026",
+  CRMOS: "crm_live_crmos_core_platform_2026",
+} as const;
 
 export interface CRMosContact {
   id?: string;
@@ -28,7 +45,9 @@ export interface CRMosDeal {
   stage: "lead" | "qualified" | "proposal" | "negotiation" | "won" | "lost";
   company_name: string;
   contact_id?: string;
+  contact_email?: string;
   probability?: number;
+  notes?: string;
 }
 
 export interface CRMosActivity {
@@ -46,10 +65,21 @@ export interface CRMosCandidate {
   last_name: string;
   email: string;
   phone?: string;
-  skills: string[];
+  role_applied?: string;
+  deal_model?: "no_cure_no_pay" | "fixed" | "freelance";
+  company?: string;
+  tags?: string[];
+  skills?: string[];
   experience_years?: number;
   location?: string;
   notes?: string;
+}
+
+export interface CRMosWebhookRegistration {
+  company: string;
+  url: string;
+  events: Array<"candidate.placed" | "deal.won" | "contact.upserted">;
+  secret?: string;
 }
 
 export class CRMosClient {
@@ -58,7 +88,7 @@ export class CRMosClient {
 
   constructor(
     baseUrl: string = "https://crmos.one/api/v1",
-    apiKey: string = "crm_live_master_jamaldrenthe_2026_all_ecosystem"
+    apiKey: string = CRMOS_API_KEYS.VVC
   ) {
     this.baseUrl = baseUrl.replace(/\/$/, "");
     this.apiKey = apiKey;
@@ -81,14 +111,20 @@ export class CRMosClient {
     return res.json() as Promise<T>;
   }
 
-  // 1. ZOEKEN & LEZEN
+  // 1. HEALTH & CONNECTIVITEIT
+  async health(): Promise<{ status: string }> {
+    return this.request<{ status: string }>("/health");
+  }
+
+  // 2. ZOEKEN & LEZEN
   async search(query: string) {
     return this.request<{ success: boolean; data: any }>(`/search?q=${encodeURIComponent(query)}`);
   }
 
-  async getContacts(params?: { q?: string; company_tag?: string; tag?: string }) {
+  async getContacts(params?: { q?: string; email?: string; company_tag?: string; tag?: string }) {
     const sp = new URLSearchParams();
     if (params?.q) sp.append("q", params.q);
+    if (params?.email) sp.append("email", params.email);
     if (params?.company_tag) sp.append("company_tag", params.company_tag);
     if (params?.tag) sp.append("tag", params.tag);
     const qs = sp.toString() ? `?${sp.toString()}` : "";
@@ -97,6 +133,10 @@ export class CRMosClient {
 
   async getContactById(id: string) {
     return this.request<{ success: boolean; data: CRMosContact }>(`/contacts/${encodeURIComponent(id)}`);
+  }
+
+  async lookupVvcTag(tag: string) {
+    return this.request<{ success: boolean; data: any }>(`/vvc/lookup?tag=${encodeURIComponent(tag)}`);
   }
 
   async getTeams() {
@@ -116,7 +156,7 @@ export class CRMosClient {
     return this.request<{ success: boolean; data: CRMosCandidate[] }>(`/candidates`);
   }
 
-  // 2. SCHRIJVEN & VERRIJKEN
+  // 3. SCHRIJVEN & VERRIJKEN
   async upsertContact(contact: CRMosContact) {
     return this.request<{ success: boolean; data: CRMosContact }>("/contacts/upsert", {
       method: "POST",
@@ -156,6 +196,14 @@ export class CRMosClient {
     return this.request<{ success: boolean; data: CRMosCandidate }>("/candidates", {
       method: "POST",
       body: JSON.stringify(candidate),
+    });
+  }
+
+  // 4. WEBHOOK REGISTRATIE
+  async registerWebhook(webhook: CRMosWebhookRegistration) {
+    return this.request<{ success: boolean; message: string }>("/webhooks", {
+      method: "POST",
+      body: JSON.stringify(webhook),
     });
   }
 }
