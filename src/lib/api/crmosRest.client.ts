@@ -133,8 +133,7 @@ export class CRMosClient {
     const token = await getCrmosBridgeToken();
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      "X-CRMOS-API-KEY": this.apiKey,
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : { "X-CRMOS-API-KEY": this.apiKey }),
       ...(options.headers as Record<string, string> || {}),
     };
 
