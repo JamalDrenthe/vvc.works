@@ -82,6 +82,40 @@ export interface CRMosWebhookRegistration {
   secret?: string;
 }
 
+let cachedBridgeToken: string | null = null;
+let tokenExpiresAt = 0;
+
+export async function getCrmosBridgeToken(): Promise<string | null> {
+  const now = Date.now();
+  if (cachedBridgeToken && now < tokenExpiresAt - 60000) {
+    return cachedBridgeToken;
+  }
+
+  try {
+    const res = await fetch(
+      "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyCsBPKp7i7Cd959bF8hZzTDtV_V_7cI9Xo",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: "vvc-sync-test@crmos.one",
+          password: "VvcSyncTest2026!",
+          returnSecureToken: true,
+        }),
+      }
+    );
+
+    if (!res.ok) return null;
+    const data = await res.json();
+    cachedBridgeToken = data.idToken;
+    tokenExpiresAt = now + (parseInt(data.expiresIn || "3600", 10) * 1000);
+    return cachedBridgeToken;
+  } catch (err) {
+    console.warn("CRMos bridge auth notice:", err);
+    return null;
+  }
+}
+
 export class CRMosClient {
   private baseUrl: string;
   private apiKey: string;
@@ -96,10 +130,12 @@ export class CRMosClient {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
-    const headers = {
+    const token = await getCrmosBridgeToken();
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
       "X-CRMOS-API-KEY": this.apiKey,
-      ...options.headers,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers as Record<string, string> || {}),
     };
 
     const res = await fetch(url, { ...options, headers });
