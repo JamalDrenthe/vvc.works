@@ -33,10 +33,10 @@ export const config = {
    */
   useMock,
   firebase: {
-    apiKey: (import.meta.env.VITE_FIREBASE_API_KEY ?? "").trim(),
-    authDomain: (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? "").trim(),
-    projectId: (import.meta.env.VITE_FIREBASE_PROJECT_ID ?? "").trim(),
-    appId: (import.meta.env.VITE_FIREBASE_APP_ID ?? "").trim(),
+    apiKey: (import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDDB2YIivG4WdG3ro8Y0Gf05Ym_YvagEJQ").trim(),
+    authDomain: (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "vvc-dev.firebaseapp.com").trim(),
+    projectId: (import.meta.env.VITE_FIREBASE_PROJECT_ID || "vvc-dev").trim(),
+    appId: (import.meta.env.VITE_FIREBASE_APP_ID || "1:842240578643:web:355208fbb23ef575a0ea12").trim(),
   },
   crmosFirebase: {
     apiKey: (import.meta.env.VITE_CRMOS_FIREBASE_API_KEY ?? "AIzaSyCsBPKp7i7Cd959bF8hZzTDtV_V_7cI9Xo").trim(),

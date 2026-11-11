@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import {
   Crosshair,
   Plus,
@@ -8,10 +8,14 @@ import {
   CheckCircle2,
   Building2,
   X,
+  ExternalLink,
+  Sparkles,
 } from "lucide-react"
 import { toast } from "sonner"
 import { DataCard } from "@/components/common/DataCard"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/hooks/useAuth"
+import { subscribeCandidates, updateCandidateStage, type Candidate } from "@/lib/api/candidate.service"
 
 type PipelineStage =
   | "Contact Gelegd"
@@ -103,10 +107,39 @@ const STAGES: PipelineStage[] = [
 ]
 
 export default function ProspectsPage() {
+  const { user } = useAuth()
+  const [candidates, setCandidates] = useState<Candidate[]>([])
   const [prospects, setProspects] = useState<Prospect[]>(INITIAL_PROSPECTS)
   const [selectedStage, setSelectedStage] = useState<string>("All")
   const [search, setSearch] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  // Realtime synchronisatie met Pitch Tool & Firestore (vvc-dev)
+  useEffect(() => {
+    const unsub = subscribeCandidates((liveCandidates) => {
+      setCandidates(liveCandidates)
+    }, user?.email)
+    return () => unsub()
+  }, [user?.email])
+
+  // Combineer live pitch tool kandidaten met manual prospects
+  const allProspects = useMemo(() => {
+    const liveItems: Prospect[] = candidates.map((c) => ({
+      id: c.id,
+      name: c.fullName || `${c.firstName} ${c.lastName}`.trim(),
+      company: c.companyName || (c.verified ? "VVC Trainee (Voice Verified)" : "VVC Pitch Kandidaat"),
+      targetSector: "Pitch Tool & Netwerk",
+      targetType: (c.companyName ? "B2B" : "B2C") as "B2B" | "B2C",
+      stage: c.stage,
+      expectedBonus: c.bonusIncome ? `€ ${c.bonusIncome}` : (c.grandTotal ? `€ ${c.grandTotal}/mnd` : "€ 300"),
+      lastContact: c.createdAt ? "Pitch Tool Live" : "Vandaag",
+      notes: c.notes || `Doel: €${c.grandTotal || 0}/mnd (€${c.basisIncome || 0} basis, €${c.bonusIncome || 0} deals, €${c.passiveMonthly || 0} passief). Attributie: ${c.partnerName || c.partnerEmail || 'Direct'}`,
+      priority: (c.grandTotal && c.grandTotal > 2000) ? "High" : "Medium",
+    }))
+
+    const manualOnly = prospects.filter((p) => !candidates.some((c) => c.id === p.id))
+    return [...liveItems, ...manualOnly]
+  }, [candidates, prospects])
 
   // Form State
   const [formName, setFormName] = useState("")
@@ -118,7 +151,7 @@ export default function ProspectsPage() {
   const [formPriority, setFormPriority] = useState<"High" | "Medium" | "Standard">("High")
 
   const filteredProspects = useMemo(() => {
-    return prospects.filter((p) => {
+    return allProspects.filter((p) => {
       const matchStage = selectedStage === "All" || p.stage === selectedStage
       const matchSearch =
         p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -126,26 +159,26 @@ export default function ProspectsPage() {
         p.targetSector.toLowerCase().includes(search.toLowerCase())
       return matchStage && matchSearch
     })
-  }, [prospects, selectedStage, search])
+  }, [allProspects, selectedStage, search])
 
   const handleAdvanceStage = (id: string) => {
-    setProspects((prev) =>
-      prev.map((p) => {
-        if (p.id === id) {
-          const currentIndex = STAGES.indexOf(p.stage)
-          if (currentIndex < STAGES.length - 1) {
-            const nextStage = STAGES[currentIndex + 1]
-            toast.success(`Prospect bevorderd naar: ${nextStage}`, {
-              description: `${p.name} staat nu in ${nextStage}.`,
-            })
-            return { ...p, stage: nextStage, lastContact: "Zojuist" }
-          } else {
-            toast.info("Plaatsing is al voltooid!")
-          }
-        }
-        return p
-      }),
-    )
+    const target = allProspects.find((p) => p.id === id)
+    if (!target) return
+
+    const currentIndex = STAGES.indexOf(target.stage)
+    if (currentIndex < STAGES.length - 1) {
+      const nextStage = STAGES[currentIndex + 1]
+      // Push naar Firestore (vvc-dev) en CRMos
+      void updateCandidateStage(id, nextStage)
+      toast.success(`Prospect bevorderd naar: ${nextStage}`, {
+        description: `${target.name} staat nu in ${nextStage}. Gesynchroniseerd met CRMos & Firestore.`,
+      })
+      setProspects((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, stage: nextStage, lastContact: "Zojuist" } : p)),
+      )
+    } else {
+      toast.info("Plaatsing is al voltooid!")
+    }
   }
 
   const handleAddProspect = (e: React.FormEvent) => {
@@ -189,40 +222,51 @@ export default function ProspectsPage() {
             Warme <span className="text-magenta">Prospects</span> & Leads
           </h1>
           <p className="text-[#888888] text-base max-w-2xl font-medium">
-            Beheer je relaties, match ze aan de beste partnerbonussen uit De 126 Bedrijven en convergeer naar directe commissie.
+            Beheer je relaties en pitch kandidaten, realtime gekoppeld aan CRMos en Firestore. Converteer leads naar directe commissie en passieve cashflow.
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-          className="bg-magenta hover:bg-white hover:text-black text-white font-black px-5 py-3 uppercase tracking-widest text-xs flex items-center gap-2 transition-colors duration-200"
-        >
-          <Plus size={16} /> Nieuwe Prospect
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <a
+            href={`https://pitch.vvc.works?ref=${user?.email || 'partner'}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="border border-magenta/60 hover:bg-magenta/15 text-magenta font-black px-4 py-3 uppercase tracking-widest text-xs flex items-center gap-2 transition-colors duration-200"
+            title="Open Pitch Tool met partner sessie"
+          >
+            <Sparkles size={15} /> Pitch Tool <ExternalLink size={13} />
+          </a>
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="bg-magenta hover:bg-white hover:text-black text-white font-black px-5 py-3 uppercase tracking-widest text-xs flex items-center gap-2 transition-colors duration-200"
+          >
+            <Plus size={16} /> Nieuwe Prospect
+          </button>
+        </div>
       </section>
 
       {/* ─── KPI STRIP ─── */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px">
         <DataCard
           title="Pipeline Waarde"
-          value="€ 38.450"
-          sub="Verwachte bonusopbrengst"
+          value={`€ ${(allProspects.length * 300 + 38450).toLocaleString('nl-NL')}`}
+          sub="Verwachte bonus & deals"
           highlight
         />
         <DataCard
           title="Actieve Leads"
-          value={prospects.length.toString()}
-          sub="In actieve verwerking"
+          value={allProspects.length.toString()}
+          sub={candidates.length > 0 ? `${candidates.length} live via Pitch Tool` : "In actieve verwerking"}
         />
         <DataCard
           title="In Kwalificatie"
-          value={prospects.filter((p) => p.stage === "Kwalificatie (Storting)").length.toString()}
+          value={allProspects.filter((p) => p.stage === "Kwalificatie (Storting)").length.toString()}
           sub="Storting of CASS switch lopend"
         />
         <DataCard
           title="Voltooide Deals"
-          value={prospects.filter((p) => p.stage === "Plaatsing Behaald").length.toString()}
+          value={allProspects.filter((p) => p.stage === "Plaatsing Behaald").length.toString()}
           sub="Uitbetaald & passief"
         />
       </section>

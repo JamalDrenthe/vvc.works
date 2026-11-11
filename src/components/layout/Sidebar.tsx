@@ -12,6 +12,7 @@ import {
   Briefcase,
   GraduationCap,
   RotateCcw,
+  ExternalLink,
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { cn } from "@/lib/utils"
@@ -214,6 +215,28 @@ export function Sidebar({ isMobileMenuOpen, onCloseMobileMenu }: SidebarProps) {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Quick Switch to Pitch Tool */}
+      <div className="px-5 py-3 border-t border-[#1f1f1f] bg-[#070707] shrink-0">
+        <a
+          href={`https://pitch.vvc.works?ref=${user?.email || 'partner'}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between p-2.5 rounded border border-magenta/40 hover:border-magenta bg-magenta/10 hover:bg-magenta/20 transition-all group"
+          title="Open VVC Pitch Tool met partner sessie"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded bg-magenta text-white flex items-center justify-center font-black text-xs shadow-sm shadow-magenta/40">
+              P
+            </div>
+            <div>
+              <p className="text-xs font-black text-white group-hover:text-magenta transition-colors">Pitch Tool</p>
+              <p className="text-[10px] text-[#888888] font-mono">pitch.vvc.works</p>
+            </div>
+          </div>
+          <ExternalLink size={14} className="text-magenta group-hover:translate-x-0.5 transition-transform" />
+        </a>
       </div>
 
       {/* User profile */}

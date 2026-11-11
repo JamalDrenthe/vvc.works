@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import {
   Copy,
   Check,
@@ -7,10 +7,14 @@ import {
   Zap,
   Plus,
   X,
+  ExternalLink,
+  Sparkles,
 } from "lucide-react"
 import { toast } from "sonner"
 import { DataCard } from "@/components/common/DataCard"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/hooks/useAuth"
+import { subscribeCandidates, type Candidate } from "@/lib/api/candidate.service"
 
 interface Talent {
   id: string
@@ -82,38 +86,68 @@ const INITIAL_TALENTS: Talent[] = [
 ]
 
 export default function TalentenPage() {
+  const { user } = useAuth()
+  const [candidates, setCandidates] = useState<Candidate[]>([])
   const [talents, setTalents] = useState<Talent[]>(INITIAL_TALENTS)
   const [roleFilter, setRoleFilter] = useState<string>("All")
   const [copiedLink, setCopiedLink] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  // Realtime synchronisatie met Pitch Tool kandidaten via vvc-dev Firestore
+  useEffect(() => {
+    const unsub = subscribeCandidates((liveCandidates) => {
+      setCandidates(liveCandidates)
+    }, user?.email)
+    return () => unsub()
+  }, [user?.email])
+
+  // Combineer trainees met live kandidaten uit de pitch tool
+  const allTalents = useMemo(() => {
+    const pitchTalents: Talent[] = candidates.map((c) => ({
+      id: c.id,
+      name: c.fullName || `${c.firstName} ${c.lastName}`.trim(),
+      role: "Trainee Senior Consultant" as Talent["role"],
+      progress: c.verified ? "Voice Verified (Pitch Tool)" : "Pitch Aanmelding",
+      completedModules: c.verified ? 2 : 1,
+      totalModules: 3,
+      placementsThisMonth: c.placements || 0,
+      monthlyPassiveYield: `€ ${c.passiveMonthly || 0} / mnd`,
+      qualityScore: c.verified ? 9.6 : 9.1,
+      status: ((c.grandTotal && c.grandTotal > 2000) ? "Top Performer" : "On Track") as Talent["status"],
+      joinedDate: c.createdAt ? "Live Synced" : "Vandaag",
+    }))
+
+    const manualOnly = talents.filter((t) => !candidates.some((c) => c.id === t.id))
+    return [...pitchTalents, ...manualOnly]
+  }, [candidates, talents])
 
   // New Talent Form State
   const [formName, setFormName] = useState("")
   const [formRole, setFormRole] = useState<Talent["role"]>("Trainee Senior Consultant")
 
   const filteredTalents = useMemo(() => {
-    return talents.filter(
+    return allTalents.filter(
       (t) => roleFilter === "All" || t.role === roleFilter,
     )
-  }, [talents, roleFilter])
+  }, [allTalents, roleFilter])
 
   const totalMonthlyYield = useMemo(() => {
-    return talents.reduce((acc, t) => {
+    return allTalents.reduce((acc, t) => {
       const match = t.monthlyPassiveYield.match(/\d+/)
       return acc + (match ? parseInt(match[0], 10) : 0)
     }, 0)
-  }, [talents])
+  }, [allTalents])
 
   const totalPlacements = useMemo(() => {
-    return talents.reduce((acc, t) => acc + t.placementsThisMonth, 0)
-  }, [talents])
+    return allTalents.reduce((acc, t) => acc + t.placementsThisMonth, 0)
+  }, [allTalents])
 
   const handleCopyInviteLink = () => {
-    const inviteUrl = `${window.location.origin}/register?ref=VVC-PARTNER-VIP`
+    const inviteUrl = `https://pitch.vvc.works?ref=${user?.email || 'partner'}`
     void navigator.clipboard.writeText(inviteUrl)
     setCopiedLink(true)
-    toast.success("Exclusieve Talent Invite Link gekopieerd!", {
-      description: "Deel deze link met potentiële trainees om hen onder jouw leiding te onboarden.",
+    toast.success("Exclusieve Pitch Tool Invite Link gekopieerd!", {
+      description: `Gekoppeld aan jouw account (${user?.email || 'VVC Partner'}). Kandidaten komen direct in jouw portfolio & CRMos.`,
     })
     setTimeout(() => setCopiedLink(false), 2500)
   }
@@ -165,13 +199,23 @@ export default function TalentenPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          <a
+            href={`https://pitch.vvc.works?ref=${user?.email || 'partner'}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="border border-magenta/60 hover:bg-magenta/15 text-magenta font-black px-4 py-2.5 text-xs uppercase tracking-widest flex items-center gap-2 transition-colors"
+            title="Open Pitch Tool met jouw partner attributie"
+          >
+            <Sparkles size={14} /> Open Pitch <ExternalLink size={13} />
+          </a>
+
           <button
             type="button"
             onClick={handleCopyInviteLink}
             className="border border-[#333333] bg-[#111111] hover:border-magenta text-white font-bold px-4 py-2.5 text-xs uppercase tracking-widest flex items-center gap-2 transition-colors"
           >
             {copiedLink ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-            {copiedLink ? "Gekopieerd!" : "Kopieer Invite Link"}
+            {copiedLink ? "Gekopieerd!" : "Kopieer Pitch Link"}
           </button>
 
           <button
@@ -194,8 +238,8 @@ export default function TalentenPage() {
         />
         <DataCard
           title="Actieve Trainees"
-          value={talents.length.toString()}
-          sub="Onder jouw leiding"
+          value={allTalents.length.toString()}
+          sub={candidates.length > 0 ? `${candidates.length} live via Pitch Tool` : "Onder jouw leiding"}
         />
         <DataCard
           title="Trainee Plaatsingen"
