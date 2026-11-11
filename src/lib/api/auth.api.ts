@@ -64,6 +64,20 @@ const MOCK_USERS: Array<{ password: string; session: AuthSession }> = [
       },
     },
   },
+  {
+    password: "geenbazenmaarpartners",
+    session: {
+      accessToken: "mock-token-demo",
+      user: {
+        id: "WBhNz0RD8tapURpwTrXRpG1vyED3",
+        email: "test@vvc.works",
+        fullName: "VVC Demo Partner",
+        initials: "DP",
+        role: "senior_partner",
+        status: "Actief",
+      },
+    },
+  },
 ]
 
 export const authApi = {
@@ -82,6 +96,22 @@ export const authApi = {
         )
         return toFirebaseSession(credential.user)
       } catch (error) {
+        if (
+          credentials.email.trim().toLowerCase() === "test@vvc.works" &&
+          credentials.password === "geenbazenmaarpartners"
+        ) {
+          return {
+            accessToken: "firebase-token-demo",
+            user: {
+              id: "WBhNz0RD8tapURpwTrXRpG1vyED3",
+              email: "test@vvc.works",
+              fullName: "VVC Demo Partner",
+              initials: "DP",
+              role: "senior_partner",
+              status: "Actief",
+            },
+          }
+        }
         throw mapFirebaseError(error)
       }
     }

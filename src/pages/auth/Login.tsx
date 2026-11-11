@@ -16,6 +16,27 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [isDemoLoading, setIsDemoLoading] = useState(false)
+
+  const handleDemoLogin = async () => {
+    setIsDemoLoading(true)
+    setEmail("test@vvc.works")
+    setPassword("geenbazenmaarpartners")
+    try {
+      const authenticated = await login({
+        email: "test@vvc.works",
+        password: "geenbazenmaarpartners",
+      })
+      if (!authenticated) return
+      const target =
+        (location.state as LocationState | null)?.from?.pathname ?? "/dashboard"
+      navigate(target, { replace: true })
+    } catch {
+      /* error wordt via context state getoond */
+    } finally {
+      setIsDemoLoading(false)
+    }
+  }
 
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true)
@@ -59,6 +80,37 @@ export default function LoginPage() {
       </div>
 
       <div className="bg-[#0a0a0a] border border-[#222222] p-8 space-y-6">
+        {/* Direct Demo Account 1-Click Login */}
+        <button
+          type="button"
+          onClick={handleDemoLogin}
+          disabled={isLoading || isGoogleLoading || isDemoLoading}
+          className="w-full border-2 border-magenta bg-magenta/15 hover:bg-magenta/25 text-white font-bold py-3.5 px-4 uppercase tracking-wider text-xs flex justify-between items-center transition-all duration-200 shadow-[0_0_20px_rgba(230,0,126,0.3)] hover:shadow-[0_0_30px_rgba(230,0,126,0.5)] group disabled:opacity-50 cursor-pointer"
+        >
+          <div className="flex items-center gap-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+            <div className="text-left">
+              <span className="block font-black text-white text-xs group-hover:text-magenta transition-colors">
+                Demo Account Inloggen
+              </span>
+              <span className="block text-[10px] text-[#aaaaaa] font-mono normal-case">
+                test@vvc.works
+              </span>
+            </div>
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-black bg-white group-hover:bg-magenta group-hover:text-white px-2.5 py-1 transition-colors flex items-center gap-1">
+            {isDemoLoading ? (
+              <>
+                <Loader2 className="animate-spin" size={12} />
+                Laden…
+              </>
+            ) : (
+              <>
+                Demo <ChevronRight size={12} />
+              </>
+            )}
+          </span>
+        </button>
         <button
           type="button"
           onClick={handleGoogleLogin}
