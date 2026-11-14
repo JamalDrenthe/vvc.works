@@ -165,8 +165,8 @@ export function subscribeCandidates(
   // 1. Direct lokale kandidaten emitten
   emit();
 
-  // 2. Ophalen uit CRMos Contacts API
   const fetchCrmosContacts = async () => {
+    try {
       const queryTag = partnerEmailOrCode
         ? `#partner:${partnerEmailOrCode.toLowerCase()}`
         : "#vvc";
