@@ -167,8 +167,10 @@ export function subscribeCandidates(
 
   // 2. Ophalen uit CRMos Contacts API
   const fetchCrmosContacts = async () => {
-    try {
-      const res = await crmos.getContacts({ tag: "#vvc" });
+      const queryTag = partnerEmailOrCode
+        ? `#partner:${partnerEmailOrCode.toLowerCase()}`
+        : "#vvc";
+      const res = await crmos.getContacts({ tag: queryTag });
       if (res && res.data && Array.isArray(res.data)) {
         crmosCandidates = res.data.map((c: any) => {
           const cf = c.custom_fields || {};

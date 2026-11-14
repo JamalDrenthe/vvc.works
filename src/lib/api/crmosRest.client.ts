@@ -1,28 +1,16 @@
 /**
- * CRMos REST API & Bi-directionele Integratie Client
- * Volledige bi-directionele integratie (lezen én schrijven) voor AI agents en VVC platform.
+ * CRMos REST API & Integratie Client
+ * Beveiligde client voor VVC platform met sessie-gebaseerde Bearer token injectie.
  * 
  * Voldoet aan de universele ecosysteem-spelregels:
- * - Base URL: https://crmos.one/api/v1 (of lokaal http://localhost:5173/api/v1)
- * - Header: X-CRMOS-API-KEY: crm_live_vvc_verdienende_vrienden_club_2026 (of Master Key)
+ * - Base URL: https://crmos.one/api/v1 (configureerbaar via VITE_CRMOS_BASE_URL)
+ * - Header: Authorization: Bearer <user-id-token> of X-CRMOS-API-KEY: <env-key>
  * - Header: Content-Type: application/json
  */
 
-export const CRMOS_API_KEYS = {
-  MASTER: "crm_live_master_jamaldrenthe_2026_all_ecosystem",
-  VVC: "crm_live_vvc_verdienende_vrienden_club_2026",
-  SPONTIVA: "crm_live_spontiva_recruitment_2026",
-  BOOSTPLUG: "crm_live_boostplug_energy_iot_2026",
-  QUANTUM_INITIUM: "crm_live_quantum_initium_enterprise_2026",
-  IMMIGRATIEPUNT: "crm_live_immigratiepunt_portal_2026",
-  WONINGVRY: "crm_live_woningvry_realestate_2026",
-  DJOBBA_WORKS: "crm_live_djobba_works_freelance_2026",
-  TRUSTING_WORK: "crm_live_trusting_work_staffing_2026",
-  LOGS_RENT: "crm_live_logs_rent_logistics_2026",
-  ZHEAVENZY: "crm_live_zheavenzy_atelier_2026",
-  XABI_WORLD: "crm_live_xabi_world_international_2026",
-  CRMOS: "crm_live_crmos_core_platform_2026",
-} as const;
+import { getFirebaseAuth } from "@/lib/firebase.client";
+
+export const CRMOS_API_KEY = (import.meta.env.VITE_CRMOS_API_KEY || "").trim();
 
 export interface CRMosContact {
   id?: string;
@@ -82,36 +70,18 @@ export interface CRMosWebhookRegistration {
   secret?: string;
 }
 
-let cachedBridgeToken: string | null = null;
-let tokenExpiresAt = 0;
-
+/**
+ * Haalt het actuele Firebase ID-token op van de ingelogde gebruiker.
+ * Bevat geen hardcoded credentials.
+ */
 export async function getCrmosBridgeToken(): Promise<string | null> {
-  const now = Date.now();
-  if (cachedBridgeToken && now < tokenExpiresAt - 60000) {
-    return cachedBridgeToken;
-  }
-
   try {
-    const res = await fetch(
-      "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyCsBPKp7i7Cd959bF8hZzTDtV_V_7cI9Xo",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: "vvc-sync-test@crmos.one",
-          password: "VvcSyncTest2026!",
-          returnSecureToken: true,
-        }),
-      }
-    );
-
-    if (!res.ok) return null;
-    const data = await res.json();
-    cachedBridgeToken = data.idToken;
-    tokenExpiresAt = now + (parseInt(data.expiresIn || "3600", 10) * 1000);
-    return cachedBridgeToken;
-  } catch (err) {
-    console.warn("CRMos bridge auth notice:", err);
+    const auth = await getFirebaseAuth();
+    if (auth.currentUser) {
+      return await auth.currentUser.getIdToken();
+    }
+    return null;
+  } catch {
     return null;
   }
 }
@@ -121,8 +91,8 @@ export class CRMosClient {
   private apiKey: string;
 
   constructor(
-    baseUrl: string = "https://crmos.one/api/v1",
-    apiKey: string = CRMOS_API_KEYS.VVC
+    baseUrl: string = (import.meta.env.VITE_CRMOS_BASE_URL || "https://crmos.one/api/v1").trim(),
+    apiKey: string = CRMOS_API_KEY
   ) {
     this.baseUrl = baseUrl.replace(/\/$/, "");
     this.apiKey = apiKey;
@@ -133,7 +103,7 @@ export class CRMosClient {
     const token = await getCrmosBridgeToken();
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : { "X-CRMOS-API-KEY": this.apiKey }),
+      ...(token ? { Authorization: `Bearer ${token}` } : this.apiKey ? { "X-CRMOS-API-KEY": this.apiKey } : {}),
       ...(options.headers as Record<string, string> || {}),
     };
 

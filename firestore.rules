@@ -8,10 +8,46 @@ service cloud.firestore {
     function isAdmin() {
       return signedIn() && (
         request.auth.token.email == 'info@jamaldrenthe.com' ||
+        request.auth.token.email == 'info@vvc.works' ||
         request.auth.token.get('admin', false) == true
       );
     }
 
+    // Kandidaten: Gecontroleerde lead creatie (vanaf Pitch Tool),
+    // Alleen admin of de gekoppelde partner mag kandidaatdata inzien of bewerken
+    match /candidates/{candidateId} {
+      allow create: if request.resource.data.keys().hasAll(['firstName', 'lastName', 'email', 'phone'])
+                    && request.resource.data.email is string
+                    && request.resource.data.firstName is string
+                    && request.resource.data.lastName is string;
+      allow read: if isAdmin() || (
+        signedIn() && (
+          (resource.data.partnerEmail != null && resource.data.partnerEmail == request.auth.token.email) ||
+          (resource.data.partnerId != null && resource.data.partnerId == request.auth.uid) ||
+          (resource.data.partnerCode != null && request.auth.token.get('partnerCode', '') != '' && resource.data.partnerCode == request.auth.token.partnerCode)
+        )
+      );
+      allow update: if isAdmin() || (
+        signedIn() && (
+          (resource.data.partnerEmail != null && resource.data.partnerEmail == request.auth.token.email) ||
+          (resource.data.partnerId != null && resource.data.partnerId == request.auth.uid)
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Partners & Gebruikersprofielen
+    match /partners/{partnerId} {
+      allow read: if signedIn();
+      allow write: if isAdmin() || (signedIn() && request.auth.uid == partnerId);
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin() || (signedIn() && request.auth.uid == userId);
+    }
+
+    // Default: alle overige documenten strikt admin-only
     match /{document=**} {
       allow read, write: if isAdmin();
     }

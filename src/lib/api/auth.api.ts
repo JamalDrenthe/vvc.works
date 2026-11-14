@@ -96,40 +96,21 @@ export const authApi = {
         )
         return toFirebaseSession(credential.user)
       } catch (error) {
-        if (
-          credentials.email.trim().toLowerCase() === "test@vvc.works" &&
-          credentials.password === "geenbazenmaarpartners"
-        ) {
-          return {
-            accessToken: "firebase-token-demo",
-            user: {
-              id: "WBhNz0RD8tapURpwTrXRpG1vyED3",
-              email: "test@vvc.works",
-              fullName: "VVC Demo Partner",
-              initials: "DP",
-              role: "senior_partner",
-              status: "Actief",
-            },
-          }
-        }
         throw mapFirebaseError(error)
       }
     }
 
     if (config.authProvider === "mock") {
+      if (!import.meta.env.DEV) {
+        throw new Error("Mock-authenticatie is uitgeschakeld in productie.")
+      }
       const emailInput = credentials.email.trim().toLowerCase()
       const match = MOCK_USERS.find((u) => {
         const uEmail = u.session.user.email.toLowerCase()
         const isEmailMatch =
           uEmail === emailInput ||
           (emailInput === "ceo@vvc.nl" && u.session.user.id === "u_ceo")
-        const isPasswordMatch =
-          u.password === credentials.password ||
-          ((u.session.user.email === "info@jamaldrenthe.com" || u.session.user.email === "info@vvc.works") &&
-            (credentials.password === "admin" || credentials.password === "ceo")) ||
-          (u.session.user.email === "js.drenthe@gmail.com" &&
-            (credentials.password === "vriend" || credentials.password === "password" || credentials.password === "vvc"))
-        return isEmailMatch && isPasswordMatch
+        return isEmailMatch && u.password === credentials.password
       })
       if (!match) {
         await wait(400)
