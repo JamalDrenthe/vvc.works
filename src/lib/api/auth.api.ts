@@ -7,78 +7,39 @@ import type { AuthSession, LoginCredentials, UserRole } from "@/types"
  * Auth API. De authenticatieprovider staat los van de appdata-modus.
  */
 
-const MOCK_USERS: Array<{ password: string; session: AuthSession }> = [
-  {
-    password: "executie",
-    session: {
-      accessToken: "mock-token-sanne",
-      user: {
-        id: "u_sanne",
-        email: "sanne@vvc.nl",
-        fullName: "Sanne Verbruggen",
-        initials: "SV",
-        role: "senior_partner",
-        status: "Actief",
+function getDevMockUsers(): Array<{ password: string; session: AuthSession }> {
+  if (!import.meta.env.DEV) return []
+  return [
+    {
+      password: "executie",
+      session: {
+        accessToken: "mock-token-sanne",
+        user: {
+          id: "u_sanne",
+          email: "sanne@vvc.nl",
+          fullName: "Sanne Verbruggen",
+          initials: "SV",
+          role: "senior_partner",
+          status: "Actief",
+        },
       },
     },
-  },
-  {
-    password: "ceo",
-    session: {
-      accessToken: "mock-token-ceo",
-      user: {
-        id: "u_ceo",
-        email: "info@vvc.works",
-        fullName: "VVC Directie",
-        initials: "VD",
-        role: "ceo",
-        status: "Actief",
+    {
+      password: "geenbazenmaarpartners",
+      session: {
+        accessToken: "mock-token-demo",
+        user: {
+          id: "WBhNz0RD8tapURpwTrXRpG1vyED3",
+          email: "test@vvc.works",
+          fullName: "VVC Demo Partner",
+          initials: "DP",
+          role: "senior_partner",
+          status: "Actief",
+        },
       },
     },
-  },
-  {
-    password: "ceo",
-    session: {
-      accessToken: "mock-token-jamal",
-      user: {
-        id: "u_jamal",
-        email: "info@jamaldrenthe.com",
-        fullName: "Jamal Drenthe",
-        initials: "JD",
-        role: "ceo",
-        status: "Actief",
-      },
-    },
-  },
-  {
-    password: "vriend",
-    session: {
-      accessToken: "mock-token-jsdrenthe",
-      user: {
-        id: "u_jsdrenthe",
-        email: "js.drenthe@gmail.com",
-        fullName: "Jamal Drenthe",
-        initials: "JD",
-        role: "vriend",
-        status: "Actief",
-      },
-    },
-  },
-  {
-    password: "geenbazenmaarpartners",
-    session: {
-      accessToken: "mock-token-demo",
-      user: {
-        id: "WBhNz0RD8tapURpwTrXRpG1vyED3",
-        email: "test@vvc.works",
-        fullName: "VVC Demo Partner",
-        initials: "DP",
-        role: "senior_partner",
-        status: "Actief",
-      },
-    },
-  },
-]
+  ]
+}
 
 export const authApi = {
   async login(credentials: LoginCredentials): Promise<AuthSession> {
@@ -105,13 +66,11 @@ export const authApi = {
         throw new Error("Mock-authenticatie is uitgeschakeld in productie.")
       }
       const emailInput = credentials.email.trim().toLowerCase()
-      const match = MOCK_USERS.find((u) => {
-        const uEmail = u.session.user.email.toLowerCase()
-        const isEmailMatch =
-          uEmail === emailInput ||
-          (emailInput === "ceo@vvc.nl" && u.session.user.id === "u_ceo")
-        return isEmailMatch && u.password === credentials.password
-      })
+      const match = getDevMockUsers().find(
+        (u) =>
+          u.session.user.email.toLowerCase() === emailInput &&
+          u.password === credentials.password,
+      )
       if (!match) {
         await wait(400)
         throw new Error("Onjuiste inloggegevens.")
@@ -144,12 +103,16 @@ export const authApi = {
         throw mapFirebaseError(error)
       }
     }
-    const jamal = MOCK_USERS.find(
-      (u) =>
-        u.session.user.email === "js.drenthe@gmail.com" ||
-        u.session.user.email === "info@jamaldrenthe.com",
-    )
-    return jamal ? jamal.session : MOCK_USERS[1].session
+
+    if (!import.meta.env.DEV) {
+      throw new Error("Google-inloggen vereist actieve Firebase-authenticatie.")
+    }
+
+    const demoMocks = getDevMockUsers()
+    if (!demoMocks.length) {
+      throw new Error("Geen ontwikkel-sessie beschikbaar.")
+    }
+    return demoMocks[0].session
   },
 
   async me(): Promise<AuthSession["user"] | null> {
