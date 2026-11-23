@@ -5,46 +5,80 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function verifiedEmail() {
+      return signedIn() && request.auth.token.email_verified == true;
+    }
+
     function isAdmin() {
       return signedIn() && (
-        request.auth.token.email == 'info@jamaldrenthe.com' ||
-        request.auth.token.email == 'info@vvc.works' ||
+        (verifiedEmail() && (
+          request.auth.token.email == 'info@jamaldrenthe.com' ||
+          request.auth.token.email == 'info@vvc.works'
+        )) ||
         request.auth.token.get('admin', false) == true
       );
     }
 
-    // Kandidaten: Gecontroleerde lead creatie (vanaf Pitch Tool),
-    // Alleen admin of de gekoppelde partner mag kandidaatdata inzien of bewerken
+    function isAssignedPartner(data) {
+      return signedIn() && (
+        (data.partnerId != null && data.partnerId == request.auth.uid) ||
+        (verifiedEmail() && data.partnerEmail != null && data.partnerEmail == request.auth.token.email) ||
+        (data.partnerCode != null && request.auth.token.get('partnerCode', '') != '' && data.partnerCode == request.auth.token.partnerCode)
+      );
+    }
+
+    // Kandidaten: Begrensde lead-creatie vanaf de Pitch Tool,
+    // Strikte multi-tenant isolatie voor lezen en veldbegrensde updates via affectedKeys()
     match /candidates/{candidateId} {
       allow create: if request.resource.data.keys().hasAll(['firstName', 'lastName', 'email', 'phone'])
-                    && request.resource.data.email is string
-                    && request.resource.data.firstName is string
-                    && request.resource.data.lastName is string;
-      allow read: if isAdmin() || (
-        signedIn() && (
-          (resource.data.partnerEmail != null && resource.data.partnerEmail == request.auth.token.email) ||
-          (resource.data.partnerId != null && resource.data.partnerId == request.auth.uid) ||
-          (resource.data.partnerCode != null && request.auth.token.get('partnerCode', '') != '' && resource.data.partnerCode == request.auth.token.partnerCode)
-        )
+                    && request.resource.data.keys().size() <= 35
+                    && request.resource.data.firstName is string && request.resource.data.firstName.size() <= 100
+                    && request.resource.data.lastName is string && request.resource.data.lastName.size() <= 100
+                    && request.resource.data.email is string && request.resource.data.email.size() <= 254
+                    && request.resource.data.phone is string && request.resource.data.phone.size() <= 40
+                    && (!('status' in request.resource.data) || request.resource.data.status in ['nieuw', 'active']);
+
+      allow read: if isAdmin() || isAssignedPartner(resource.data);
+
+      allow update: if isAdmin() || (
+        isAssignedPartner(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stage', 'status', 'notes', 'updatedAt'])
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // Partners: Strikte isolatie per partner UID + bescherming van geprivilegieerde velden
+    match /partners/{partnerId} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == partnerId);
+      allow create: if isAdmin() || (
+        signedIn()
+        && request.auth.uid == partnerId
+        && !request.resource.data.keys().hasAny(['role', 'commissionRate', 'isAdmin'])
       );
       allow update: if isAdmin() || (
-        signedIn() && (
-          (resource.data.partnerEmail != null && resource.data.partnerEmail == request.auth.token.email) ||
-          (resource.data.partnerId != null && resource.data.partnerId == request.auth.uid)
-        )
+        signedIn()
+        && request.auth.uid == partnerId
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'commissionRate', 'status', 'isAdmin'])
       );
       allow delete: if isAdmin();
     }
 
-    // Partners & Gebruikersprofielen
-    match /partners/{partnerId} {
-      allow read: if signedIn();
-      allow write: if isAdmin() || (signedIn() && request.auth.uid == partnerId);
-    }
-
+    // Gebruikersprofielen: Eigen UID + blokkering van zelf-escalatie op role/status
     match /users/{userId} {
-      allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
-      allow write: if isAdmin() || (signedIn() && request.auth.uid == userId);
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == userId);
+      allow create: if isAdmin() || (
+        signedIn()
+        && request.auth.uid == userId
+        && (!('role' in request.resource.data) || request.resource.data.role == 'vriend')
+        && !request.resource.data.keys().hasAny(['isAdmin'])
+      );
+      allow update: if isAdmin() || (
+        signedIn()
+        && request.auth.uid == userId
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status', 'isAdmin'])
+      );
+      allow delete: if isAdmin();
     }
 
     // Default: alle overige documenten strikt admin-only

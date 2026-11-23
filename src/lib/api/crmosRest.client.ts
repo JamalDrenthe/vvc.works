@@ -10,8 +10,6 @@
 
 import { getFirebaseAuth } from "@/lib/firebase.client";
 
-export const CRMOS_API_KEY = (import.meta.env.VITE_CRMOS_API_KEY || "").trim();
-
 export interface CRMosContact {
   id?: string;
   first_name: string;
@@ -88,14 +86,11 @@ export async function getCrmosBridgeToken(): Promise<string | null> {
 
 export class CRMosClient {
   private baseUrl: string;
-  private apiKey: string;
 
   constructor(
-    baseUrl: string = (import.meta.env.VITE_CRMOS_BASE_URL || "https://crmos.one/api/v1").trim(),
-    apiKey: string = CRMOS_API_KEY
+    baseUrl: string = (import.meta.env.VITE_CRMOS_BASE_URL || "https://crmos.one/api/v1").trim()
   ) {
     this.baseUrl = baseUrl.replace(/\/$/, "");
-    this.apiKey = apiKey;
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -103,7 +98,7 @@ export class CRMosClient {
     const token = await getCrmosBridgeToken();
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : this.apiKey ? { "X-CRMOS-API-KEY": this.apiKey } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers as Record<string, string> || {}),
     };
 

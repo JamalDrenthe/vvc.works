@@ -1,0 +1,5 @@
+# Mandatory Security & Architecture Ownership
+* @JamalDrenthe
+/firestore.rules @JamalDrenthe
+/.github/workflows/ @JamalDrenthe
+/src/lib/api/ @JamalDrenthe
